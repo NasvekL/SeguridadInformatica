@@ -2,6 +2,7 @@
 
 
 burp suite
+ssrf
 Purpose of command	Linux	Windows
 Name of current user	whoami	whoami
 Operating system	uname -a	ver
