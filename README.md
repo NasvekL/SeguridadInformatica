@@ -1,8 +1,6 @@
 # Seguridad Informática
+##Indice
 - [Burp Suite](#burp-suite)
-  - [SSRF](#ssrf)
-  - [Comandos útiles](#comandos-útiles)
-    - [Bypassing 2FA](#bypassing-2fa)
 - [John the Ripper](#john-the-ripper)
 - [Metasploit](#metasploit)
 - [Nmap](#nmap)
