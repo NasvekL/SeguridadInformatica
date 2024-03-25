@@ -1,46 +1,64 @@
-# SeguridadInformatica
+# Seguridad Informática
 
+Este documento recopila información y notas personales sobre diversas herramientas y técnicas en el campo de la seguridad informática.
 
-burp suite
+## Burp Suite
 
-ssrf
+Burp Suite es una herramienta esencial para el análisis de seguridad de aplicaciones web. Permite realizar pruebas manuales y automatizadas para identificar vulnerabilidades de seguridad.
 
-muchas veces se puede bypaseaer el f2a si esta en una pagina distinta
+### SSRF
 
-stockreport.pl 381 29 en linea de comandos para acceder al stock. productId=1&storeId=1|whoami si se ejecuta desde terminal eso se pasa facil
+- Se puede eludir la autenticación de dos factores (2FA) si está implementada en una página distinta.
 
-Purpose of command	Linux	Windows
+### Comandos útiles
+| Propósito del comando        | Linux    | Windows         |
+|------------------------------|----------|-----------------|
+| Nombre del usuario actual    | `whoami` | `whoami`        |
+| Sistema operativo            | `uname -a` | `ver`          |
+| Configuración de red         | `ifconfig` | `ipconfig /all` |
+| Conexiones de red            | `netstat -an` | `netstat -an` |
+| Procesos en ejecución        | `ps -ef` | `tasklist`      |
 
-Name of current user	whoami	whoami
+#### Bypassing 2FA
+- Es posible eludir el 2FA cuando la verificación se realiza en una página distinta.
 
-Operating system	uname -a	ver
+#### Uso de la línea de comandos para testing
+- Ejemplo de comando: `stockreport.pl 381 29` en línea de comandos para acceder al stock.
+  - Payload de ejemplo: `productId=1&storeId=1|whoami`. Si se ejecuta desde terminal, este payload puede ser procesado sin mayores restricciones.
 
-Network configuration	ifconfig	ipconfig /all
+### Detección de vulnerabilidades de inyección SQL
 
-Network connections	netstat -an	netstat -an
+- Para detectar vulnerabilidades de inyección SQL manualmente, realiza un conjunto sistemático de pruebas contra cada punto de entrada en la aplicación.
+- Sintaxis específica de SQL que evalúa al valor base (original) del punto de entrada, y a un valor diferente, y busca diferencias sistemáticas en las respuestas de la aplicación.
+Condiciones booleanas tales como OR 1=1 y OR 1=2, y busca diferencias en las respuestas de la aplicación.
+Cargas útiles diseñadas para provocar retrasos de tiempo cuando se ejecutan dentro de una consulta SQL, y busca diferencias en el tiempo que tarda en responder.
+Cargas útiles OAST diseñadas para desencadenar una interacción de red fuera de banda cuando se ejecutan dentro de una consulta SQL, y monitorea cualquier interacción resultante.
 
-Running processes	ps -ef	tasklist
-
-How to detect SQL injection vulnerabilities
-You can detect SQL injection manually using a systematic set of tests against every entry point in the application. To do this, you would typically submit:
-
-The single quote character ' and look for errors or other anomalies.
-Some SQL-specific syntax that evaluates to the base (original) value of the entry point, and to a different value, and look for systematic differences in the application responses.
-Boolean conditions such as OR 1=1 and OR 1=2, and look for differences in the application's responses.
-Payloads designed to trigger time delays when executed within a SQL query, and look for differences in the time taken to respond.
-OAST payloads designed to trigger an out-of-band network interaction when executed within a SQL query, and monitor any resulting interactions.
-
+#### Ejemplo de prueba de inyección SQL
 
 GET /filter?category=Accessories' OR 1=1-- HTTP/2
 
 
 
-jhon the riper
 
-metasplot
 
-nmap
+## John the Ripper
 
-wireshark
+(TBD - Información por agregar)
 
-sqlmap
+## Metasploit
+
+(TBD - Información por agregar)
+
+## Nmap
+
+(TBD - Información por agregar)
+
+## Wireshark
+
+(TBD - Información por agregar)
+
+## Sqlmap
+
+(TBD - Información por agregar)
+
