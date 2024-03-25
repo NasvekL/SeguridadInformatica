@@ -3,6 +3,7 @@
 
 burp suite
 ssrf
+muchas veces se puede bypaseaer el f2a si esta en una pagina distinta
 Purpose of command	Linux	Windows
 
 Name of current user	whoami	whoami
