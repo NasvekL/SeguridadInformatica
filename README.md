@@ -1,5 +1,4 @@
 # Seguridad Informática
-## Indice
 - [Burp Suite](#burp-suite)
 - [John the Ripper](#john-the-ripper)
 - [Metasploit](#metasploit)
@@ -13,6 +12,8 @@ Este documento recopila información y notas personales sobre diversas herramien
 
 Burp Suite es una herramienta esencial para el análisis de seguridad de aplicaciones web. Permite realizar pruebas manuales y automatizadas para identificar vulnerabilidades de seguridad.
 
+### Path Traversal
+Permite al atacante aceder a archivos que no deberia. Por ejemplo `https://insecure-website.com/loadImage?filename=../../../etc/passwd` permitiria acceder a `/var/www/images/../../../etc/passwd` que daria lugar a que se accediese en realidad a `/etc/passwd`.
 ### SSRF
 
 - Se puede eludir la autenticación de dos factores (2FA) si está implementada en una página distinta.
