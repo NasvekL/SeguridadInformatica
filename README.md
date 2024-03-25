@@ -40,3 +40,7 @@ jhon the riper
 metasplot
 
 nmap
+
+wireshark
+
+sqlmap
