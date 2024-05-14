@@ -100,8 +100,11 @@ Al intentar hacer un ataque UNION, hay dos metodos efectivos para determinar cua
 Inyectar series de ORDER BY e incrementar el indice de columna hasta que ocurra un error. Por ejemplo, si el punto de inyección es un string dentro de un WHERE, podría intentarse esto:
 
 `' ORDER BY 1--
+
 ' ORDER BY 2--
+
 ' ORDER BY 3--
+
 etc.`
 
 Cuando se exceda el numero de columna, la base dara un error del estilo
