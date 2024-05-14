@@ -120,9 +120,20 @@ Usamos NULL ya que no sabemos que tipo de datos tiene cada columna, y NULL es co
 Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra con valores NULL en cada columna. Tambien podrian generar un NullPointerException. En el peor de los casos la respuesta se verá igual acertando o errando la cantidad, en cuyo caso este metodo no es efectivo.
 
 #### Sintaxis especifico de database
-- En Oracle se usa FROM DUAL para obtener info random por ejemplo del sistema.
+- En Oracle se usa FROM DUAL para obtener info random por ejemplo del sistema. Se pueden hacer varias cosas interesantes con lo de DUAL, como consultar el usuario de la bd, llamar a funciones, entre otras cosas random.
 - En  MySQL el -- tiene que ir seguido de un espacio, o se puede usar un # para marcar un comentario
+
 [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) de las diversas particularidades de cada DB.
+
+#### Obtener columnas que devuelvan string
+La informacion interesante usualmente esta en forma de string. Esto significa que queremos encontrar las columnas cuyo tipo de datos sea string o compatible con string. Por ejemplo asi:
+
+`' UNION SELECT 'a',NULL,NULL,NULL--
+' UNION SELECT NULL,'a',NULL,NULL--
+' UNION SELECT NULL,NULL,'a',NULL--
+' UNION SELECT NULL,NULL,NULL,'a'--`
+
+Si el tipo de dato de la columna no es compatible con string, el query causara un error en la base de datos, que una vez mas podra ser o no visible en la respuesta http.
 
 ## John the Ripper
 
