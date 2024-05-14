@@ -67,39 +67,54 @@ Sin embargo, también es común encontrarlos en el WHERE del UPDATE, en los valo
 
 #### Ejemplo 1
 `https://insecure-website.com/products?category=Gifts`
+
 podría hacer que la aplicación ejecute este código:
+
 `SELECT * FROM products WHERE category = 'Gifts' AND released = 1`
+
 Podríamos agregar dos líneas para que el resto se comentase, logrando que se evitase el release=1:
+
 `https://insecure-website.com/products?category=Gifts'--`
-También agregar lo siguiente para que muestre todo, no solo de la categoría GIfts:
+
+También agregar lo siguiente para que muestre todo, no solo de la categoría Gifts:
+
 `https://insecure-website.com/products?category=Gifts'+OR+1=1--`
+
 #### Ejemplo 2
 Al poner usuario y contraseña, el servidor ejecuta:
+
 `SELECT * FROM users WHERE username = 'usr' AND password = 'pass'`
+
 Y si la query devuelve los datos, entonces se hace el login, de lo contrario es rechazado. Usando `--` un usuario podria evitar la parte del `AND password = 'pass'`, logrando ser capaz de logearse como cualquier usuario
 
 ### Inyecciones SQL de ataque UNION
 Union permite agregar otro SELECT luego del SELECT inicial:
+
 `SELECT a, b FROM table1 UNION SELECT c, d FROM table2`
+
 Para que funcione se deben cumplir dos condiciones:
 - Cada query debe devolver la misma cantidad de columnas.
 - Los tipos de cada columna deben ser compatibles entre los distintoss querys, en este ejemplo a con c y b con d.
 Al intentar hacer un ataque UNION, hay dos metodos efectivos para determinar cuantas columnas devuelve la query original.
 #### Método 1
 Inyectar series de ORDER BY e incrementar el indice de columna hasta que ocurra un error. Por ejemplo, si el punto de inyección es un string dentro de un WHERE, podría intentarse esto:
+
 `' ORDER BY 1--
 ' ORDER BY 2--
 ' ORDER BY 3--
 etc.`
+
 Cuando se exceda el numero de columna, la base dara un error del estilo
 `The ORDER BY position number 3 is out of range of the number of items in the select list.`
 Sin embargo este error podría o no devolverse en la respuesta HTTP. Tambien podría devolver un error genérico o no devolver nada. Sin embargo si se puede detectar alguna diferencia en la respuesta, se puede inferir cuántas columnas están siendo devueltas.
 #### Método 2
 La otra opción es subir una serie de payloads UNION SELECT especificando distintos valores NULL:
+
 `' UNION SELECT NULL--
 ' UNION SELECT NULL,NULL--
 ' UNION SELECT NULL,NULL,NULL--
 etc.`
+
 que devolverá un error si no macchea con la cantidad de columnas de la base de datos.
 Usamos NULL ya que no sabemos que tipo de datos tiene cada columna, y NULL es convertible a todos los tipos de datos asi que maximiza la chance de que el payload tenga exito cuando la cantidad de atributos corresponda con la columna. Sin embargo, tener en cuenta que pueden haber columnas que no pueden contener valor NULL.
 Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra con valores NULL en cada columna. Tambien podrian generar un NullPointerException. En el peor de los casos la respuesta se verá igual acertando o errando la cantidad, en cuyo caso este metodo no es efectivo.
