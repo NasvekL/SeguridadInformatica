@@ -94,6 +94,15 @@ etc.`
 Cuando se exceda el numero de columna, la base dara un error del estilo
 `The ORDER BY position number 3 is out of range of the number of items in the select list.`
 Sin embargo este error podría o no devolverse en la respuesta HTTP. Tambien podría devolver un error genérico o no devolver nada. Sin embargo si se puede detectar alguna diferencia en la respuesta, se puede inferir cuántas columnas están siendo devueltas.
+#### Método 2
+La otra opción es subir una serie de payloads UNION SELECT especificando distintos valores NULL:
+`' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+etc.`
+que devolverá un error si no macchea con la cantidad de columnas de la base de datos.
+Usamos NULL ya que no sabemos que tipo de datos tiene cada columna, y NULL es convertible a todos los tipos de datos asi que maximiza la chance de que el payload tenga exito cuando la cantidad de atributos corresponda con la columna. Sin embargo, tener en cuenta que pueden haber columnas que no pueden contener valor NULL.
+Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra con valores NULL en cada columna. Tambien podrian generar un NullPointerException. En el peor de los casos la respuesta se verá igual acertando o errando la cantidad, en cuyo caso este metodo no es efectivo.
 
 ## John the Ripper
 
