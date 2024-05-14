@@ -119,6 +119,11 @@ que devolverá un error si no macchea con la cantidad de columnas de la base de 
 Usamos NULL ya que no sabemos que tipo de datos tiene cada columna, y NULL es convertible a todos los tipos de datos asi que maximiza la chance de que el payload tenga exito cuando la cantidad de atributos corresponda con la columna. Sin embargo, tener en cuenta que pueden haber columnas que no pueden contener valor NULL.
 Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra con valores NULL en cada columna. Tambien podrian generar un NullPointerException. En el peor de los casos la respuesta se verá igual acertando o errando la cantidad, en cuyo caso este metodo no es efectivo.
 
+#### Sintaxis especifico de database
+- En Oracle se usa FROM DUAL para obtener info random por ejemplo del sistema.
+- En  MySQL el -- tiene que ir seguido de un espacio, o se puede usar un # para marcar un comentario
+[SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) de las diversas particularidades de cada DB.
+
 ## John the Ripper
 
 (TBD - Información por agregar)
