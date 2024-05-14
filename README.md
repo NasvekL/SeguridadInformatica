@@ -55,18 +55,45 @@ Tambien pueden ser de la forma `stockApi=http://192.168.0.X/admin` en cuyo caso 
 ### Detección de vulnerabilidades de inyección SQL
 
 - Para detectar vulnerabilidades de inyección SQL manualmente, realiza un conjunto sistemático de pruebas contra cada punto de entrada en la aplicación.
+- El caracter ' y buscar errores o anomalías.
 - Sintaxis específica de SQL que evalúa al valor base (original) del punto de entrada, y a un valor diferente, y busca diferencias sistemáticas en las respuestas de la aplicación.
-Condiciones booleanas tales como OR 1=1 y OR 1=2, y busca diferencias en las respuestas de la aplicación.
-Cargas útiles diseñadas para provocar retrasos de tiempo cuando se ejecutan dentro de una consulta SQL, y busca diferencias en el tiempo que tarda en responder.
-Cargas útiles OAST diseñadas para desencadenar una interacción de red fuera de banda cuando se ejecutan dentro de una consulta SQL, y monitorea cualquier interacción resultante.
+- Condiciones booleanas tales como OR 1=1 y OR 1=2, y busca diferencias en las respuestas de la aplicación.
+- Cargas útiles diseñadas para provocar retrasos de tiempo cuando se ejecutan dentro de una consulta SQL, y busca diferencias en el tiempo que tarda en responder.
+ - Cargas útiles OAST diseñadas para desencadenar una interacción de red fuera de banda cuando se ejecutan dentro de una consulta SQL, y monitorea cualquier interacción resultante. Útiles para identificar vulnerabilidades que implican la ejecución de código o la exposición de datos sensibles a través de canales secundarios, como DNS, correos electrónicos, o sistemas de mensajes.
 
-#### Ejemplo de prueba de inyección SQL
+El Burp Scanner debería ser capaz de encontrar las inyecciones SQLs obvias.
+La mayoría de vulnerabilidades ocurren en la clausula WHERE del SELECT.
+Sin embargo, también es común encontrarlos en el WHERE del UPDATE, en los valores del INSERT, en la tabla o nombre de columna del SELECT, o en los ORDER BY.
 
-GET /filter?category=Accessories' OR 1=1-- HTTP/2
+#### Ejemplo 1
+`https://insecure-website.com/products?category=Gifts`
+podría hacer que la aplicación ejecute este código:
+`SELECT * FROM products WHERE category = 'Gifts' AND released = 1`
+Podríamos agregar dos líneas para que el resto se comentase, logrando que se evitase el release=1:
+`https://insecure-website.com/products?category=Gifts'--`
+También agregar lo siguiente para que muestre todo, no solo de la categoría GIfts:
+`https://insecure-website.com/products?category=Gifts'+OR+1=1--`
+#### Ejemplo 2
+Al poner usuario y contraseña, el servidor ejecuta:
+`SELECT * FROM users WHERE username = 'usr' AND password = 'pass'`
+Y si la query devuelve los datos, entonces se hace el login, de lo contrario es rechazado. Usando `--` un usuario podria evitar la parte del `AND password = 'pass'`, logrando ser capaz de logearse como cualquier usuario
 
-
-
-
+### Inyecciones SQL de ataque UNION
+Union permite agregar otro SELECT luego del SELECT inicial:
+`SELECT a, b FROM table1 UNION SELECT c, d FROM table2`
+Para que funcione se deben cumplir dos condiciones:
+- Cada query debe devolver la misma cantidad de columnas.
+- Los tipos de cada columna deben ser compatibles entre los distintoss querys, en este ejemplo a con c y b con d.
+Al intentar hacer un ataque UNION, hay dos metodos efectivos para determinar cuantas columnas devuelve la query original.
+#### Método 1
+Inyectar series de ORDER BY e incrementar el indice de columna hasta que ocurra un error. Por ejemplo, si el punto de inyección es un string dentro de un WHERE, podría intentarse esto:
+`' ORDER BY 1--
+' ORDER BY 2--
+' ORDER BY 3--
+etc.`
+Cuando se exceda el numero de columna, la base dara un error del estilo
+`The ORDER BY position number 3 is out of range of the number of items in the select list.`
+Sin embargo este error podría o no devolverse en la respuesta HTTP. Tambien podría devolver un error genérico o no devolver nada. Sin embargo si se puede detectar alguna diferencia en la respuesta, se puede inferir cuántas columnas están siendo devueltas.
 
 ## John the Ripper
 
