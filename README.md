@@ -104,9 +104,10 @@ Inyectar series de ORDER BY e incrementar el indice de columna hasta que ocurra 
 `' ORDER BY 3--`  
 `etc.`
 
-Cuando se exceda el numero de columna, la base dara un error del estilo
-`The ORDER BY position number 3 is out of range of the number of items in the select list.`
-Sin embargo este error podría o no devolverse en la respuesta HTTP. Tambien podría devolver un error genérico o no devolver nada. Sin embargo si se puede detectar alguna diferencia en la respuesta, se puede inferir cuántas columnas están siendo devueltas.
+Cuando se exceda el numero de columna, la base dara un error del estilo  
+`The ORDER BY position number 3 is out of range of the number of items in the select list.`  
+Sin embargo este error podría o no devolverse en la respuesta HTTP. Tambien podría devolver un error genérico o no devolver nada. Sin embargo si se puede detectar alguna diferencia en la respuesta, se puede inferir cuántas columnas están siendo devueltas.  
+Sirve mirar en que orden se ordenan los componentes http para ver cual columna es cual. Puede dar pistas.
 #### Método 2
 La otra opción es subir una serie de payloads UNION SELECT especificando distintos valores NULL:
 
@@ -128,12 +129,27 @@ Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra c
 #### Obtener columnas que devuelvan string
 La informacion interesante usualmente esta en forma de string. Esto significa que queremos encontrar las columnas cuyo tipo de datos sea string o compatible con string. Por ejemplo asi:
 
-`' UNION SELECT 'a',NULL,NULL,NULL--
-' UNION SELECT NULL,'a',NULL,NULL--
-' UNION SELECT NULL,NULL,'a',NULL--
-' UNION SELECT NULL,NULL,NULL,'a'--`
+`' UNION SELECT 'a',NULL,NULL,NULL--`  
+`' UNION SELECT NULL,'a',NULL,NULL--`  
+`' UNION SELECT NULL,NULL,'a',NULL--`  
+`' UNION SELECT NULL,NULL,NULL,'a'--`
 
-Si el tipo de dato de la columna no es compatible con string, el query causara un error en la base de datos, que una vez mas podra ser o no visible en la respuesta http.
+Si el tipo de dato de la columna no es compatible con string, el query causara un error en la base de datos, que una vez mas podra ser o no visible en la respuesta http. Esto sirve como para explorar la BD.
+
+#Punto de inyeccion: el punto en la consulta sql al que podemos inyectarle mierda  
+Se puede hacer ´' UNION SELECT username, pass FROM users--´ por ejemplo
+
+#### Concatenar varias columnas en una sola
+A veces la consulta SQL del servidor devuelve una cantidad menor de columnas de las que queremos extraer. Para esto, podemos concatenar varios valores de columnas en una sola.  
+Por ejemplo, en Oracle se hace asi:  
+´' UNION SELECT username || '~' || password FROM users--´  
+El || concatena y el ~ en este caso simplemente separa, pero podria ser cualquier otro simbolo.  
+Una vez más, en el [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) se puede encontrar la sintaxis de cada DB.
+
+##### Ejemplo
+Hay una consulta que da dos campos, un codigo int y un string. Para obtener los resultados puedo usar  
+´' UNION SELECT 1,username || '~' || password FROM users--´  
+El 1 es para que quede ese valor en la primera columna, ya que el esquema del union select tiene que ser compatible con el select original. Los espacios en realidad serían +, en todas las inyecciones (´'+UNION+SELECT+1,username+...´)
 
 ## John the Ripper
 
