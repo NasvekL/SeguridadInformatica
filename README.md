@@ -122,7 +122,7 @@ Si la consulta tiene exito y es devuelta por el HTTP, devolvera una fila extra c
 
 #### Sintaxis especifico de database
 - En Oracle se usa FROM DUAL para obtener info random por ejemplo del sistema. Se pueden hacer varias cosas interesantes con lo de DUAL, como consultar el usuario de la bd, llamar a funciones, entre otras cosas random.
-- En  MySQL el -- tiene que ir seguido de un espacio, o se puede usar un # para marcar un comentario
+- En  MySQL el -- tiene que ir seguido de un espacio, o se puede usar un # para marcar un comentario. **A veces el -- no sirve y hay que usar #**
 
 [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) de las diversas particularidades de cada DB.
 
@@ -160,7 +160,15 @@ Para explotar vulnerabilidades SQL se necesita conocer el tipo y version de la b
 | Oracle           | `SELECT * FROM v$version`|
 | PostgreSQL       | `SELECT version()`       |  
 
-Podria usarse por ejemplo con un UNION.
+Podria usarse por ejemplo con un UNION. El @@version aparentemente muestra version del so?  
+La mayoria de bases de datos (excepto Oracle) tiene un conjunto de vistas llamado esquema de informacion, que provee informacion de la base de datos, por ejemplo, podria usarse la consulta ´SELECT TABLE_NAME,NULL,... FROM information_schema.tables´ para obtener las tablas de la base.  
+Luego, usando ´SELECT COLUMN_NAME,DATA_TYPE,NULL,... FROM information_schema.columns WHERE table_name = 'Users'´ podriamos obtener el esquema de la tabla Users.
+Luego ya teniendo las columnas de users podriamos hacer ´SELECT username, pass,NULL,... FROM Users´
+information_schema.tables: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  TABLE_TYPE
+information_schema.columns: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  COLUMN_NAME  DATA_TYPE
+
+
+
 
 ## John the Ripper
 
