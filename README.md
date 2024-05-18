@@ -167,8 +167,21 @@ Luego ya teniendo las columnas de users podriamos hacer ´SELECT username, pass,
 information_schema.tables: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  TABLE_TYPE
 information_schema.columns: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  COLUMN_NAME  DATA_TYPE
 
+### Inyección SQL ciega (blind)
+Ocurre cuando una aplicacion es vulnerable a una inyeccion SQL pero sus respuestas HTTP no contienen el resultado de la consulta SQL relevante o detalles sobre un error en la base de datos.  
+Muchas tecnicas, como la de ´UNION´ no son efectivos con inyecciones SQL ciegas, ya que su éxito depende completamente de poder ver los resultados de la consulta inyectada en las respuestas de la aplicacion. Sin embargo aún es posible explotar las inyecciones ciegas para obtener acceso no autorizado, pero debemos usar técnicas distintas.
 
-
+#### Ejemplo de inyección SQL ciega con cookies
+Una pagina tiene una cookie de tracking: ´Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4´ para la cual la aplicación usa una consulta SQL para determinar si es un usuario conocido:  
+´SELECT TrackingId FROM TrackedUsers WHERE TrackingId = 'u5YD3PapBcR4lN3e7Tj4'´  
+Esta consulta es vulnerable a una inyección SQL pero los resultados no son devueltos al usuario. Sin embargo la aplicación se comporta distinto dependiendo en si la consulta devuelve algún dato o no; si se sube un id reconocido, el query devuelve datos y se recibe el mensaje "Welcome back" en la respuesta.  
+Este comportamiento es suficiente para explotar la vulnerabilidad, ya que podemos obtener informacion al desencadenar diferentes respuestas condicionalmente, dependiendo de  una condicion inyectada.
+Le agregamos a la cookie ´' AND '1'='1´ o ´' AND '1'='2´ y en el primer caso data true y en el segundo caso no. Entonces podemos jugar con eso por ejemplo para intentar adivinar la contraseña del Administrador:  
+´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) > 't´
+En caso de que no aparezca el mensaje "Welcome back", se estaría indicando que la condicion es falsa, osea que el primer caracter de la contraseña es menor a t.  
+´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) = 's´  
+En caso de que esta última consulta diera true, podriamos estar seguros de que la primer letra de la contraseña del administrador es s. Podriamos seguir este proceso hasta obtener la contraseña del administrador.
+#SUUBSTRING a veces se llama SUBSTR dependiendo de la base de datos.
 
 ## John the Ripper
 
