@@ -151,6 +151,16 @@ Hay una consulta que da dos campos, un codigo int y un string. Para obtener los 
 ´' UNION SELECT 1,username || '~' || password FROM users--´  
 El 1 es para que quede ese valor en la primera columna, ya que el esquema del union select tiene que ser compatible con el select original. Los espacios en realidad serían +, en todas las inyecciones (´'+UNION+SELECT+1,username+...´)
 
+#### Examinando la base de datos
+Para explotar vulnerabilidades SQL se necesita conocer el tipo y version de la base asi como las tablas y columnas que contiene esta base.
+
+| Tipo de base     | Consulta                 |
+|------------------|--------------------------|
+| Microsoft, MySQL | `SELECT @@version`       |
+| Oracle           | `SELECT * FROM v$version`|
+| PostgreSQL       | `SELECT version()`       |  
+Podria usarse por ejemplo con un UNION.
+
 ## John the Ripper
 
 (TBD - Información por agregar)
