@@ -159,6 +159,7 @@ Para explotar vulnerabilidades SQL se necesita conocer el tipo y version de la b
 | Microsoft, MySQL | `SELECT @@version`       |
 | Oracle           | `SELECT * FROM v$version`|
 | PostgreSQL       | `SELECT version()`       |  
+
 Podria usarse por ejemplo con un UNION.
 
 ## John the Ripper
