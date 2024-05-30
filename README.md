@@ -176,12 +176,51 @@ Una pagina tiene una cookie de tracking: ´Cookie: TrackingId=u5YD3PapBcR4lN3e7T
 ´SELECT TrackingId FROM TrackedUsers WHERE TrackingId = 'u5YD3PapBcR4lN3e7Tj4'´  
 Esta consulta es vulnerable a una inyección SQL pero los resultados no son devueltos al usuario. Sin embargo la aplicación se comporta distinto dependiendo en si la consulta devuelve algún dato o no; si se sube un id reconocido, el query devuelve datos y se recibe el mensaje "Welcome back" en la respuesta.  
 Este comportamiento es suficiente para explotar la vulnerabilidad, ya que podemos obtener informacion al desencadenar diferentes respuestas condicionalmente, dependiendo de  una condicion inyectada.
-Le agregamos a la cookie ´' AND '1'='1´ o ´' AND '1'='2´ y en el primer caso data true y en el segundo caso no. Entonces podemos jugar con eso por ejemplo para intentar adivinar la contraseña del Administrador:  
+Le agregamos a la cookie ´' AND '1'='1´ o ´' AND '1'='2´ y en el primer caso da true y en el segundo caso no. Entonces podemos jugar con eso por ejemplo para intentar adivinar la contraseña del Administrador:  
 ´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) > 't´
 En caso de que no aparezca el mensaje "Welcome back", se estaría indicando que la condicion es falsa, osea que el primer caracter de la contraseña es menor a t.  
 ´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) = 's´  
 En caso de que esta última consulta diera true, podriamos estar seguros de que la primer letra de la contraseña del administrador es s. Podriamos seguir este proceso hasta obtener la contraseña del administrador.
-#SUUBSTRING a veces se llama SUBSTR dependiendo de la base de datos.
+#SUUBSTRING a veces se llama SUBSTR dependiendo de la base de datos. El primer 1 es la posicion el segundo el largo del substring.
+Ejemplo: ´Cookie: TrackingId=xK4RIo0XAv9wnTGy' AND SUBSTRING((SELECT password FROM users WHERE Username = 'administrator'), 1, 4) > 'b73a;´  
+En este caso los dos primeros caracteres son b8, con lo cual b7 dara true, b8 dara false. Se va fijando para cada caracter como si fueran numeros. Ademas, tener en cuenta que ''a'>'0'  
+Si ponemos largo 26 pero el campo tiene 15 caracteres, solo tomara los 15 caracteres.
+
+### Inyección SQL basada en error
+Se refiere a los casos cuando puede usarse un mensaje de error para obtener o inferir información sensible de la base de datos, incluso en contextos ciegoss. La viabilidad de este método depende de la configuración de la base de datos y de los errores que podamos desencadenar.  
+- Podríamos ser capaces de inducir a la aplicación a devolver una respuesta de error específica basada en el resultado de una expresión booleana. Podemos explotar esto de la misma forma que en las respuestas condicionales del ejemplo anterior.
+- Podríamos ser capaces de desencedenar mensajes de error que outputeen la información devuelta por el query. Esto efectivamente convierte las vulnerabilidades SQL ciegas en visibles.
+
+#### Explotando inyección SQL ciega desencadenando errores condicionales
+Algunas aplicaciones ejecutan queries SQL pero su comportamiento no cambia independientemente de si la query devuelve o no información. En este caso la técnica no funcionará porque inyectar condiciones booleanas no le hace diferencia a la aplicación.  
+Sin embargo a veces es posible inducirla a devolver respuestas diferentes dependiendo de si ocurre un error. La query puede modificarse para que cause un error en la BD si y sólo si la condición es true. Usualmente un error no manejado lanzado por la base causa alguna diferencia en la respuesta de la aplicación, como un mensaje de error. Esto nos permite inferir si la condición inyectada era cierta o no.  
+Para ver cómo funciona eto, supongamos que se envian dos request en el cookie:  
+´xyz' AND (SELECT CASE WHEN (1=2) THEN 1/0 ELSE 'a' END)='a´  
+´xyz' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a´  
+Esto usa ´CASE´ para testear una condición y devuelve una expresión diferente dependiendo de si la expresión es true:
+- En el primer caso, devuelve 'a' lo que no causa ningun error.
+- En el segundo caso evalua 1/0, lo que causa un error al dividir por 0.
+Si el error causa una diferencia en la respuesta HTTP podemos usar esto para determinar si la condición inyectada es verdadera. Haciendo esto podemos obtener la información como en el caso anterior, un caracter por vez:
+´xyz' AND (SELECT CASE WHEN (Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') THEN 1/0 ELSE 'a' END FROM Users)='a´
+#Hay formas diferentes de desencadenar errores condicionales y cada técnica funciona mejor o peor dependiendo del tipo de base de datos. Para más detalles, revisar la [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet).
+Podemos en el TrackingId primero agregar un ' para ver si devuelve error de sintaxis. El error deberia desaparecer si ponemos '' (`TrackingId=WbS9PRMYS9vtBMXH''`). Esto sugiere que un error de sintaxis es detectable.  
+Luego para confirmar que el servidor esta interpretando la inyeccion como una query SQL podemos usar un subquery usando sintaxis SQL valida como puede ser `TrackingId=xyz'||(SELECT '')||'`. Sin embargo esto podria dar error dependiendo del tipo de base de datos. En el caso de Oracle por ejemplo podemos intentarlo con algo que sabemos que funciona: `TrackingId=xyz'||(SELECT '' FROM dual)||'`. Despues de esto para confirmar que devuelve un error podemos simplemente probar con algo que no funcionara, como usando una tabla que no exista: `TrackingId=xyz'||(SELECT '' FROM not-a-real-table)||'`. Si ahora si se devuelve un error esto sugiere fuertemente que la inyeccion se esta procesando como una query SQL en el back-end.
+Por ejemplo, para verificar que la tabla `users` exista, podemos usar el siguiente query:
+`TrackingId=xyz'||(SELECT '' FROM users WHERE ROWNUM = 1)||'`
+Si no devuelve un error podemos asumir que la tabla existe. Notar que `WHERE ROWNUM = 1` es importante para prevenir que el query devuelva mas de una fila, lo que romperia nuestra concatenacion.
+Por ejemplo para corroborar que la verificacion de condiciones se muestra, podriamos ingresar esta query:
+`'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`  
+Si lo cambiamos a `TrackingId=xyz'||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'` el error deberia desaparecer.
+Con esta query podemos determinar el **largo** de la contra del admin:  
+`xyz'||(SELECT CASE WHEN LENGTH(password)>1 THEN to_char(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
+Mientras el largo sea mayor al numero, dara true, en cuyo caso hara el 1/0 y por ende devolvera error.
+
+Aunque puede hacerse manualmente, a veces son campos muy largos, con lo cual en lugar del Burp Repeater es mejor usar el Burp Intruder.  
+`'||(SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
+Para poner un payload en el caracter `a` lo seleccionamos y clickeamos en Add §. Para probar un caracter en cada posicion, necesitamos tener payloads adecuados en la posicion. Vamos a la pestaña Payloads y chequeamos "Simple list", y en Payload settings agregamos los del rango ´a-z´ y ´0-9´
+
+
+
 
 ## John the Ripper
 
