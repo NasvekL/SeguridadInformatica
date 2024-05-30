@@ -217,9 +217,23 @@ Mientras el largo sea mayor al numero, dara true, en cuyo caso hara el 1/0 y por
 
 Aunque puede hacerse manualmente, a veces son campos muy largos, con lo cual en lugar del Burp Repeater es mejor usar el Burp Intruder.  
 `'||(SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
-Para poner un payload en el caracter `a` lo seleccionamos y clickeamos en Add §. Para probar un caracter en cada posicion, necesitamos tener payloads adecuados en la posicion. Vamos a la pestaña Payloads y chequeamos "Simple list", y en Payload settings agregamos los del rango ´a-z´ y ´0-9´
+Para poner un payload en el caracter `a` lo seleccionamos y clickeamos en Add §. Para probar un caracter en cada posicion, necesitamos tener payloads adecuados en la posicion. Vamos a la pestaña Payloads y chequeamos "Simple list", y en Payload settings agregamos los del rango ´a-z´ y ´0-9´  
+Simplemente vamos ejecutando el ataque en paralelo cada uno cambiando el numero en el SUBSTR y obtenemos los que dan codigo 500.  
 
-
+#### Extrayendo información sensible mediante mensajes de error SQL verbosos
+Una configuración precaria de la base de datos a veces lleva a mensajes de error verbosos, los cuales pueden proveer información útil a un atacante. Por ejemplo, consideremos el siguiente mensaje de error que ocurre al inyectar un ' en el parametro de ´id´:  
+´Unterminated string literal started at position 52 in SQL SELECT * FROM tracking WHERE id = '''. Expected char´  
+Esto muestra el query completo de la aplicacion construido usando nuestro input. Podemos ver que en este caso estamos inyectando dentro de un string con '' en un bloque ´WHERE´. Esto facilita construir un query valido con un payload malicioso.  En este caso en particular, un -- al final deberia evitar el mensaje de error; esto para chequear que funciona como (no) deberia.
+A veces podemos inducir a la aplicacion a generar un mensaje de error que contenga datos que son devueltos por el query. Esto convierte una inyeccion SQL ciega en una completamente visible.  
+Podemos usar la funcion ´CAST()´ para lograr esto, lo que nos permite convertir un tipo de datos a otro. Por ejemplo, imaginemos que tenemos una query con lo siguiente:  
+´CAST((SELECT example_column FROM example_table) AS int)´  
+Usualmente la informacion que intentamos leer es un string. Intentar convertirlo en un tipo de datos incompatible como puede ser ´Int´ podria provocar un error como el siguiente:  
+´ERROR: invalid input syntax for type integer: "Example data"´  
+Este tipo de query puede ser util si un limite de caracteres nos impide desencadenar respuestas condicionales.  
+Ejemplo particular: ´xyz' AND CAST((SELECT 1) AS int)--´ o ´' AND 1=CAST((SELECT username FROM users) AS int)--´  
+A veces se dan errores por superara el limite de caracteres de la consulta. En esos casos debemos intentar achicarla. En ese caso podemos achicar incluso más la consulta, por ejemplo:  
+´TrackingId=' AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--´  
+Esto podria dejarnos este mensaje de error: ´ERROR: invalid input syntax for type integer: "peter"´. Luego restaria hacer lo mismo con la pass y gg.
 
 
 ## John the Ripper
