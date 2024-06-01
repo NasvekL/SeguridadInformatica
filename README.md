@@ -212,7 +212,7 @@ Por ejemplo para corroborar que la verificacion de condiciones se muestra, podri
 `'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`  
 Si lo cambiamos a `TrackingId=xyz'||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'` el error deberia desaparecer.
 Con esta query podemos determinar el **largo** de la contra del admin:  
-`xyz'||(SELECT CASE WHEN LENGTH(password)>1 THEN to_char(1/0) ELSE '' END FROM users WHERE username='administrator')||'`
+`xyz'||(SELECT CASE WHEN LENGTH(password)>1 THEN to_char(1/0) ELSE '' END FROM users WHERE username='administrator')||'`  
 Mientras el largo sea mayor al numero, dara true, en cuyo caso hara el 1/0 y por ende devolvera error.
 
 Aunque puede hacerse manualmente, a veces son campos muy largos, con lo cual en lugar del Burp Repeater es mejor usar el Burp Intruder.  
@@ -234,6 +234,22 @@ Ejemplo particular: `xyz' AND CAST((SELECT 1) AS int)--` o `' AND 1=CAST((SELECT
 A veces se dan errores por superara el limite de caracteres de la consulta. En esos casos debemos intentar achicarla. En ese caso podemos achicar incluso más la consulta, por ejemplo:  
 `TrackingId=' AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--`  
 Esto podria dejarnos este mensaje de error: `ERROR: invalid input syntax for type integer: "peter"`. Luego restaria hacer lo mismo con la pass y gg.
+
+### Explotar inyecciones SQL ciegas triggering time delays
+Si la aplicacion agarra los errores de la base de daos cuando la query SQL es ejecutada y lo maneja de forma adecuada, no habrá ninguna diferencia en la respuesta de la aplicación. Esto significa que la técnica vista previamente para inducir errores condicionales no funcionará.  
+En esta situación usualmente es posible explotar la vulnerabilidad de inyección SQL ciega desencadenando `time delays` dependiendo de la condicion de la query ingresada es verdadera o falsa. Dado que las querys SQL normalmente son procesadas sincronicamente por la aplicacion, demorar la ejecucion de un query SQL tambien demora la respuesta HTTP. Esto puede permitirnos determinar la veracidad de la condicion basandonos en el tiempo que nos lleva recibir la respuesta HTTP.
+
+Las tecnicas para desencadenar un time delay son especificas del tipo de base de datos usado. Por ejemplo, en Microsoft SQL Server, puede usarse el siguiente codigo para testear una condicion y desencadenar un delay dependiendo de si la expresion es verdadera:  
+`'; IF (1=2) WAITFOR DELAY '0:0:10'--`  
+`'; IF (1=1) WAITFOR DELAY '0:0:10'--`  
+El primer input no trigerea un delay porque 1=2 es false, pero el segundo trigerea un delay de 10 segundos porque la condicion 1=1 es verdadera.  
+Con esta tecnica podemos obtener datos probando con un caracter por vez:  
+`'; IF (SELECT COUNT(Username) FROM Users WHERE Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') = 1 WAITFOR DELAY '0:0:{delay}'--`
+
+#Con esta tecnica tambien podemos dejar un delay de X cantidad de tiempo y basicamente dejar la base de datos inutilizada.  
+#Hay varias formas de trigerear delays en las queries SQL, dependiendo del tipo de base de datos. Para mas info ya sabes: [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
+
+
 
 
 ## John the Ripper
