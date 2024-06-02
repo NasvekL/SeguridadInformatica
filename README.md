@@ -249,6 +249,10 @@ Con esta tecnica podemos obtener datos probando con un caracter por vez:
 #Con esta tecnica tambien podemos dejar un delay de X cantidad de tiempo y basicamente dejar la base de datos inutilizada.  
 #Hay varias formas de trigerear delays en las queries SQL, dependiendo del tipo de base de datos. Para mas info ya sabes: [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
 
+En particular en PostGre usaremos esto `TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>1)+THEN+pg_sleep(10)+ELSE+pg_sleep(0)+END+FROM+users--`. El `%3B` es para indicar que se termina la consulta y que comienza otra.
+
+**Importante:** Para esta parte, al usar el intruder en el resoruce pool hay que indicarle que el maxium concurrent requests sea 1, si no los tiempos daran mezclados y necesitamos maxima precision.
+
 
 
 
