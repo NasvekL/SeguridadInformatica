@@ -303,6 +303,13 @@ Ejemplo:
 `    </storeId>`  
 `  </stockCheck>`  
 
+### Inyecciones SQL de segundo orden
+Las inyecciones SQL de primer orden son todas las anteriores, osea cuando la aplicacion procesa el input del usuario de un request HTTP e incorpora ese input en una query SQL de forma insegura.  
+En las inyecciones de segundo orden la aplicacion agarra input del usuario desde un request HTTP y lo guarda para uso futuro. Esto es usualmente guardado en la base, pero no ocurre ninguna vulnerabilidad en el punto en que se guardan esos datos. Mas adelante, al menajr un request HTTP diferente, la aplicacion devuelve los datos guardados y los incorpora en un query SQL de forma insegura. Por esta razon, las inyecciones SQL de segundo orden tambienn son conoidas como stored SQL injection.  
+Ejemplo:  
+Un usuario se registra y pone de nick `;update users set password='1234' where user='administrator'--`  
+Este tipo de inyecciones normalmente ocurre en situaciones en las que los desarrolladores saben del riesgo de las nyecciones SQL, asi que cuidan el manejo de la insercion inicial de input en la base. Cuando los datos son luegos procesados, asumen que seran seguros, ya que previamente se ingresaron a la base de forma segura. En este punto, los datos son manejados de forma insegura porque el desarrollador comete el error de asumirla confiable.
+
 
 ## John the Ripper
 
