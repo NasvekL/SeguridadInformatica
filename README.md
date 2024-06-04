@@ -310,6 +310,20 @@ Ejemplo:
 Un usuario se registra y pone de nick `;update users set password='1234' where user='administrator'--`  
 Este tipo de inyecciones normalmente ocurre en situaciones en las que los desarrolladores saben del riesgo de las nyecciones SQL, asi que cuidan el manejo de la insercion inicial de input en la base. Cuando los datos son luegos procesados, asumen que seran seguros, ya que previamente se ingresaron a la base de forma segura. En este punto, los datos son manejados de forma insegura porque el desarrollador comete el error de asumirla confiable.
 
+### Como evitar las inyecciones SQL
+Podemos prevenir la mayor parte de instancias de inyecciones SQL parametrizando los queries en lugar de concatenar strings al query. Estos queries parametrizados tambien son conocidos como consultas preparadas, ya que son precompiladas y tienen su estructura bien definida antes de conocer el input.  
+El siguiente codigo es vulnerable a una inyeccion SQL porque la input del usuario esta concatenada directo en el query:  
+`String query = "SELECT * FROM products WHERE category = '"+ input + "'";`  
+`Statement statement = connection.createStatement();`  
+`ResultSet resultSet = statement.executeQuery(query);`  
+Podemos reescribir este codigo de modo que evitemos que la input del usuario interfiera con la estructura compilada:  
+`PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE category = ?");`  
+`statement.setString(1, input);`  
+`ResultSet resultSet = statement.executeQuery();`  
+Podemos usar queries parametrizados para cualquier situacion en la cual input no confiable aparezca como datos dentro del query, incluida la clausula `WHERE` y los valores en `INSERT` y `UPDATE`. No puede sin embargo usarse para manejar input no confiable en otras partes del query como los nombres de tablas o columnas, o en la clausula `ORDER BY`. La funcionalidad de la aplicacion que pone datos inseguros en estas partes de la consulta necesitan tratarse con un approach diferente como tener una lista blanca para los valores permitidos o usar alguna clase de logica para verificar el contenido esperado.
+
+Para que las consultas parametrizadas eviten la inyeccion SQL de forma efectiva, el string que es usado en la query debe ser siempre constante hardcodeada. Nunca debe contener datos variables de ningun origen. Debe evitarse la tentacion a decidir caso por caso si un dato es confiable o no, y seguir usando concatenacion de strings en los casos de consultas que consideramos seguros. Es facil cometer errores de juicio sobre el posible origen de los datos, o no tener en cuenta futuros cambios en el codigo que puedan ensuciar datos antes confiables.
+
 
 ## John the Ripper
 
