@@ -317,3 +317,31 @@ Podemos reescribir este codigo de modo que evitemos que la input del usuario int
 Podemos usar queries parametrizados para cualquier situacion en la cual input no confiable aparezca como datos dentro del query, incluida la clausula `WHERE` y los valores en `INSERT` y `UPDATE`. No puede sin embargo usarse para manejar input no confiable en otras partes del query como los nombres de tablas o columnas, o en la clausula `ORDER BY`. La funcionalidad de la aplicacion que pone datos inseguros en estas partes de la consulta necesitan tratarse con un approach diferente como tener una lista blanca para los valores permitidos o usar alguna clase de logica para verificar el contenido esperado.
 
 Para que las consultas parametrizadas eviten la inyeccion SQL de forma efectiva, el string que es usado en la query debe ser siempre constante hardcodeada. Nunca debe contener datos variables de ningun origen. Debe evitarse la tentacion a decidir caso por caso si un dato es confiable o no, y seguir usando concatenacion de strings en los casos de consultas que consideramos seguros. Es facil cometer errores de juicio sobre el posible origen de los datos, o no tener en cuenta futuros cambios en el codigo que puedan ensuciar datos antes confiables.
+
+---
+
+## CSRF
+La falsificación de solicitudes entre sitios (también conocida como CSRF) es una vulnerabilidad de seguridad web que permite a un atacante engañar o inducir a los usuarios para que realicen acciones no deseadas en un sitio web en el que están autenticados. Esta vulnerabilidad permite a un atacante hacer que un usuario ejecute acciones sin su conocimiento, eludiendo parcialmente las medidas de seguridad diseñadas para evitar que un sitio web realice acciones en nombre de otro sitio web.
+
+En un ataque exitoso de CSRF, el atacante hace que el usuario víctima realice una acción sin darse cuenta. Por ejemplo, esto podría implicar cambiar la dirección de correo electrónico en su cuenta, cambiar su contraseña o realizar una transferencia de fondos. Dependiendo de la naturaleza de la acción, el atacante podría llegar a obtener el control total de la cuenta del usuario. Si el usuario comprometido tiene un rol privilegiado dentro de la aplicación, entonces el atacante podría llegar a tomar el control total de todos los datos y funcionalidades de la aplicación.
+
+Para que un ataque de CSRF sea posible, deben cumplirse tres condiciones clave:
+
+- **Existencia de una acción relevante:** Existe una acción dentro de la aplicación que el atacante tiene una razón para inducir. Esta podría ser una acción privilegiada (como modificar permisos para otros usuarios) o cualquier acción relacionada con datos específicos del usuario (como cambiar la contraseña del propio usuario).
+
+- **Manejo de sesiones basado en cookies:** Realizar la acción implica emitir una o más solicitudes HTTP, y la aplicación depende únicamente de cookies de sesión para identificar al usuario que ha hecho las solicitudes. No hay otro mecanismo en funcionamiento para rastrear las sesiones o validar las solicitudes del usuario.
+
+- **Sin parámetros de solicitud impredecibles:** Las solicitudes que realizan la acción no contienen parámetros cuyos valores el atacante no pueda determinar o adivinar. Por ejemplo, cuando se induce a un usuario a cambiar su contraseña, la función no es vulnerable si el atacante necesita conocer el valor de la contraseña existente.
+
+Por ejemplo, supongamoss que una aplicación contiene una función que permite al usuario cambiar el email de su cuenta. Cuando un usuario lleva a cabo esta accion, hace un request HTTP como el siguiente:  
+`OST /email/change HTTP/1.1`  
+`Host: vulnerable-website.com`  
+`Content-Type: application/x-www-form-urlencoded`  
+`Content-Length: 30`  
+`Cookie: session=yvthwsztyeQkAPzeQ5gHgTvlyxHfsAfE`  
+``  
+`email=wiener@normal-user.com`  
+Esto cumple las tres condiciones requeridas para CSRF:  
+- La acción de cambiar el email de un usuario es de interes para un atacante. Realizando esta acción, el atacante usualmente podrá resetear la contrasenia y tomar control total de la cuenta del usuario.
+- La aplicacion usas una cookie de sesion para identificar que usuario inicio el request. No hay tokens u otros mecanismos en accion para rastrear las sesiones del usuario.
+- El atacante puede determinar facilmente los valores necesarios para los parametros del request que llama a la acción.
