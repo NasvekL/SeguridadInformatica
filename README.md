@@ -345,3 +345,18 @@ Esto cumple las tres condiciones requeridas para CSRF:
 - La acción de cambiar el email de un usuario es de interes para un atacante. Realizando esta acción, el atacante usualmente podrá resetear la contrasenia y tomar control total de la cuenta del usuario.
 - La aplicacion usas una cookie de sesion para identificar que usuario inicio el request. No hay tokens u otros mecanismos en accion para rastrear las sesiones del usuario.
 - El atacante puede determinar facilmente los valores necesarios para los parametros del request que llama a la acción.
+
+Con estas condiciones cumpliendose, un atacante puede construir una pagina web que tenga el siguiente HTML:  
+`<html>`  
+`    <body>`  
+`        <form action="https://vulnerable-website.com/email/change" method="POST">`  
+`            <input type="hidden" name="email" value="pwned@evil-user.net" />`  
+`        </form>`  
+`        <script>`  
+`            document.forms[0].submit();`  
+`        </script>`  
+`    </body>`  
+`</html>`  
+Si una victima visita la pagina del atacante, ocurrira lo siguiente:  
+1. La pagina del atacante producira un request HTTP al sitio vulnerable.
+2. Si el usuario esta logeado en el sitio, el navegador automaticamente inlcuira su cookie de sesion en el request (asumiendo que no se estan usando cookies <abbr title="Las requests solo se envian con cookies si la request fue llamada desde el mismo dominio">SameSite</abbr>)
