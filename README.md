@@ -360,3 +360,37 @@ Con estas condiciones cumpliendose, un atacante puede construir una pagina web q
 Si una victima visita la pagina del atacante, ocurrira lo siguiente:  
 1. La pagina del atacante producira un request HTTP al sitio vulnerable.
 2. Si el usuario esta logeado en el sitio, el navegador automaticamente inlcuira su cookie de sesion en el request (asumiendo que no se estan usando cookies <abbr title="Las requests solo se envian con cookies si la request fue llamada desde el mismo dominio">SameSite</abbr>)
+3. El sitio web vulnerable procesara el request de forma normal, tratandolo como si hubiese sido hecho de forma normal por el usuario victima, y cambiando su direccion de mail.
+#Nota: Aunque CSRF normalmente es descrito en relacion con el manejo de sesiones basados en cookies, tambien aparece en otros contextos donde la aplicacion automaticamente agrega credenciales de usuario a los requests, como las autenticaciones HTTP Basic Authentication y la autenticacion basada en certificados.
+**HTTP Basic Authentication**  
+Cada solicitud autenticada con HTTP Basic incluye las credenciales del usuario (usualmente usuario y contrasenia), lo que puede ser explotado si un atacante induce al navegador del usuario a realizar una solicitud maliciosa.  
+**Autenticacion basada en certificados**  
+Si una aplicación web utiliza autenticación basada en certificados y automáticamente envía el certificado del usuario con cada solicitud, un atacante podría explotar esto para realizar acciones no deseadas en nombre del usuario. Por ejemplo, si el usuario visita una página maliciosa creada por el atacante, esta página podría enviar solicitudes a la aplicación web vulnerable aprovechando el certificado del usuario, que se envía automáticamente, para realizar cambios en la configuración de la cuenta o transferencias de fondos sin el conocimiento del usuario.
+
+### Ejemplo
+Request del proxy:  
+`POST /my-account/change-email HTTP/2`  
+`Host: 0a5b00d50425327980e1086d004e0074.web-security-academy.net`  
+`Cookie: session=q0ghmjyTQOnMMbC8Ym6EwPbzI7BXtgcT`  
+`Content-Length: 21`  
+`Cache-Control: max-age=0`  
+`Sec-Ch-Ua: "Chromium";v="125", "Not.A/Brand";v="24"`  
+`Sec-Ch-Ua-Mobile: ?0`  
+`Sec-Ch-Ua-Platform: "Linux"`  
+`Upgrade-Insecure-Requests: 1`  
+`Origin: https://0a5b00d50425327980e1086d004e0074.web-security-academy.net`  
+`Content-Type: application/x-www-form-urlencoded`  
+`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.112 Safari/537.36`  
+`Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7`  
+`Sec-Fetch-Site: same-origin`  
+`Sec-Fetch-Mode: navigate`  
+`Sec-Fetch-User: ?1`  
+`Sec-Fetch-Dest: document`  
+`Referer: https://0a5b00d50425327980e1086d004e0074.web-security-academy.net/my-account?id=wiener`  
+`Accept-Encoding: gzip, deflate, br`  
+`Accept-Language: es-419,es;q=0.9`  
+`Priority: u=0, i`  
+
+`email=123%40gmail.com`  
+
+Podemos dar click derecho en el request, ir a Engagement tools --> Generate CSRF PoC. Luego Regenerate y Copy HTML. En el lab nos dan un servidor donde pegar este html.w 6  
