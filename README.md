@@ -393,4 +393,11 @@ Request del proxy:
 
 `email=123%40gmail.com`  
 
-Podemos dar click derecho en el request, ir a Engagement tools --> Generate CSRF PoC. Luego Regenerate y Copy HTML. En el lab nos dan un servidor donde pegar este html.w 6  
+Podemos dar click derecho en el request, ir a Engagement tools --> Generate CSRF PoC. Luego Regenerate y Copy HTML. En el lab nos dan un servidor donde pegar este html.
+
+#### Como deliver un CSRF explot
+Los mecanismos para ataques cross-site request forgery son escencialmente los mismos que para XXS reflectados. Tipicamente el atacante colocara HTML malicioso en un sitio web que controlen, e induciran a las victimas a visitar ese sitio web. Esto podria ser logrado dandole al usuario un link al sitio, sea via email o por mensajes en redes sociales. O si el ataque es colocado en un sitio web popular, como la seccion de comentarios, podrian solo esperar a que los usuarios visiten el sitio web.
+
+Debe notarse que algunos exploits CSRF simples usan el metodo GET y pueden ser totalmente autocontenidos en una unica URL en el sitio vulnerable. En esta situacion, el atacante podria no necesitar emplear un sitio web externo, y podria directamente pasarle el URL malicioso a las victimas, con el dominio vulnerable y los parametros necesarios.  
+En este ejemplo, si el request puede cambiar la direccion de correo y puede ser ejecutado con el metodo GET, entonces un ataque autocontenido podria verse asi:  
+`<img src="https://vulnerable-website.com/email/change?email=pwned@evil-user.net">`
