@@ -428,5 +428,21 @@ Subir este formulario resultaria en la siguiente respuesta por parte del servido
 Cuando son implementados correctamente, los tokens CSRF ayudan a proteger al usuario de ataques CSRF haciendo dificil para un atacante construir un ataque valido en bahalf de la victima. Dado que el atacante no tiene forma de predecir el valor correcto del token, no sera capaz de incluirlo en el request malicioso.  
 #Nota: Los tokens CSRF no necesariamente tienen que ser enviados como parametros ocultos en un request `POST`. Algunas aplicaciones ponen los tokens en los headers HTTP, por ejemplo. La forma en que los tokens son transmitidos tiene un impacto importante en la seguridad del mecanismo completo. Para mas informacion, ver "como prevenir vulnerabilidades CSRF"/
 
+#### Vulnerabilidades comunes en la validacion de tokens CSRF
+Las vulnerabilidades CSRF usualmente estan relacionadas a la validacion debil de tokens CSRF. Veamos algunos de los problemas mas comunes que permite a los atacantes bypasear estas defensas.
 
+##### La validacion de tokens CSRF depende del metodo del request
+Algunas aplicaciones validan correctamente el token cuando el request usa el metodo POST pero omiten la validacion cuando se utiliza el metodo GET. En esta situacion, un atacante puede cambiar al metodo GET para bypasear la validacion y efectuar un ataque CSRF:  
+`GET /email/change?email=pwned@evil-user.net HTTP/1.1`  
+`Host: vulnerable-website.com`  
+`Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm`  
 
+##### La validacion del token CSRF depende de que el token este presente
+Algunas aplicciones validan correctamente el token si esta presente en el request pero skipean la validacion si este es omitido. En esta situacion, un atacante podria simplemente eliminar el parametro que contiene el token (no solo su valor) y asi bypasear la validacion, efectuando un ataque CSRF:  
+`POST /email/change HTTP/1.1`  
+`Host: vulnerable-website.com`  
+`Content-Type: application/x-www-form-urlencoded`  
+`Content-Length: 25`  
+`Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm`  
+``  
+`email=pwned@evil-user.net`  
