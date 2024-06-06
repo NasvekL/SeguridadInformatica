@@ -446,3 +446,4 @@ Algunas aplicciones validan correctamente el token si esta presente en el reques
 `Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm`  
 ``  
 `email=pwned@evil-user.net`  
+Recordar modificar el request como queramos que quede, click derecho engage tools generate poc, y ahi esta el codigo a ser enviado.
