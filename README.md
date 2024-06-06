@@ -407,3 +407,26 @@ Hoy en dia encontrar y explotar vulnerabilidades CSRF normalmente implica bypase
 - **Tokens CSRF:** Un token CSRF es un valor unico, secreto e impredecible generado en el lado del servidor y compartido con el cliente. Cuando se intenta llevar a cabo un accion sensible, como submitear un formulario, el cliente debe inlcuir el token CSRF correcto en el request. Esto hace muy dificil para un atacante construir un request valido haciendose pasar por la victima.
 - **Cookies SameSite:** SameSite es un mecanismo de seguridad web que puede determinar cuándo las cookies de un sitio web son inlcuidas en requests originados desde otros sitios o dominios. Dado que los requests llevan a cabo acciones sensibles usualmente requieren de una cookie de sesion autenticada, las restricciones SameSite pueden prevenir a un atacante de llevar a cabo estas acciones cross-site. Desde 2021 Chrome sugiere las restricciones SameSite `Lax` por defecto. Dado que es el estandar propuesto, es esperable que la mayoria de navegadores adopten ese comportamiento en un futuro.
 - **Validacion basada en el referente:** Algunas aplicaciones hacen uso del header HTTP Referer para intentar defenderse de ataques CSRF, normalmente verificando que los requests fueron originados desde el dominio de la propia aplicacion. Este metodo generalmente es menos efectivo que la validacion con token CSRF.
+
+#### Token CSRF
+Un token CSRF es un valor unico, secreto e impredecible generado en el lado del servidor y compartido con el cliente. Cuando se intenta llevar a cabo un accion sensible, como submitear un formulario, el cliente debe inlcuir el token CSRF correcto en el request. De forma contraria, el servidor se reusara a llevar a cabo la accion pedida.  
+Una forma comun de compartir tokens CSRF con el cliente es inlcuirlo como un parametro oculto en un form HTML, por ejemplo:  
+`<form name="change-email-form" action="/my-account/change-email" method="POST">`  
+`    <label>Email</label>`  
+`    <input required type="email" name="email" value="example@normal-website.com">`  
+`    <input required type="hidden" name="csrf" value="50FaWgdOhi9M9wyna8taR1k3ODOR8d6u">`  
+`    <button class='button' type='submit'> Update email </button>`  
+`</form>`  
+Subir este formulario resultaria en la siguiente respuesta por parte del servidor:  
+`POST /my-account/change-email HTTP/1.1`
+`Host: normal-website.com`
+`Content-Length: 70`
+`Content-Type: application/x-www-form-urlencoded`
+``
+`csrf=50FaWgdOhi9M9wyna8taR1k3ODOR8d6u&email=example@normal-website.com`
+
+Cuando son implementados correctamente, los tokens CSRF ayudan a proteger al usuario de ataques CSRF haciendo dificil para un atacante construir un ataque valido en bahalf de la victima. Dado que el atacante no tiene forma de predecir el valor correcto del token, no sera capaz de incluirlo en el request malicioso.  
+#Nota: Los tokens CSRF no necesariamente tienen que ser enviados como parametros ocultos en un request `POST`. Algunas aplicaciones ponen los tokens en los headers HTTP, por ejemplo. La forma en que los tokens son transmitidos tiene un impacto importante en la seguridad del mecanismo completo. Para mas informacion, ver "como prevenir vulnerabilidades CSRF"/
+
+
+
