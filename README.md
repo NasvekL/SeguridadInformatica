@@ -444,11 +444,25 @@ Algunas aplicciones validan correctamente el token si esta presente en el reques
 `Content-Type: application/x-www-form-urlencoded`  
 `Content-Length: 25`  
 `Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm`  
-``  
+  
 `email=pwned@evil-user.net`  
 Recordar modificar el request como queramos que quede, click derecho engage tools generate poc, y ahi esta el codigo a ser enviado.
 
-##### El token CSRF no esta enlazado a la sesion del usuario
+##### El token CSRF no esta enlazado a la cookie de sesion del usuario
 Algunas aplicaciones no validan que el token pertenece a la sesion del usuario que esta haciendo la request. En su lugar, la aplicacion mantiene una conjunto global de tokens de forma que acepta cualquier token contenido en dicho conjunto.  
 En esta situacion, un atacante puede logearse en la aplicacion con su propia cuenta, obtener un token valido y luego usarlo en el ataque CSRF a la victima.
 Notar que los tokens CSRF son de uso unico, asi que cada vez es necesario incluir uno fresco. En algunos casos, el token es entregado en un input hidden en el form del html dado por el get de la pagina de cambiar el correo. Podemos copiarlo y usarlo en nuestra pagina atacante SIN HABERLO USADO. Si no esta enlazado a la session cookie id, el servidor lo reconocera como valido.
+
+##### El token CSRF esta enlazado a una cookie que no es de sesion
+Una variacion de la vulnerabilidad anterior son las aplicaciones que sí enlazan su token CSRF a una cookie, pero no a la misma cookie que es usada para rastrear sesiones. Esto puede ocurrir frecuentemente cuando una aplicacion usa dos frameworks diferentes, uno para manejar la sesion y otro para la proteccion CSRF, los cuales no estan integrados de forma conjunta:  
+`POST /email/change HTTP/1.1`  
+`Host: vulnerable-website.com`  
+`Content-Type: application/x-www-form-urlencoded`  
+`Content-Length: 68`  
+`Cookie: session=pSJYSScWKpmC60LpFOAHKixuFuM4uXWF; csrfKey=rZHCnSzEp8dbI6atzagGoSYyqJqTz5dv`  
+  
+`csrf=RhV7yQDO0xcq9gLEah2WVbmuFqyOq7tY&email=wiener@normal-user.com`  
+
+Esta situacion es mas dificil de explotar pero aun asi es vulnerable. Si el sitio web posee cualquier comportamiento que puede permitir a un atacante setear una cookie en el navegador de la victima, entonces el ataque es posible. EL atacante puede logearse en la aplicacion usando su propia cuenta, obtener un token valido y la cookie asociada, aprovechar el comportamiento de configuracion de cookies para colocar su cookie en el navegador de la victima y proporcionar su token a la victima del ataque CSRF.  
+#Nota: El comportamiento de configuracion de cookie nisiquiera debe necesariamente existir en la misma aplicacion web que la vulnerabilidad CSRF. Cualquier otra aplicacion dentro del mismo dominio general puede ser potencialmente aprovechado para setear cookies en la aplicacion objetivo, si la cookie que esta controlada tiene un espectro suficientemente amplio.  
+Por ejemplo, una funcion de configuracion de cookie en `staging.demo.normal-website.com` posiblemente podria usarse para poner una cookie que sea subida a `secure.normal-website.com`.
