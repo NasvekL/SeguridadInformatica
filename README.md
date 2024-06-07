@@ -447,3 +447,8 @@ Algunas aplicciones validan correctamente el token si esta presente en el reques
 ``  
 `email=pwned@evil-user.net`  
 Recordar modificar el request como queramos que quede, click derecho engage tools generate poc, y ahi esta el codigo a ser enviado.
+
+##### El token CSRF no esta enlazado a la sesion del usuario
+Algunas aplicaciones no validan que el token pertenece a la sesion del usuario que esta haciendo la request. En su lugar, la aplicacion mantiene una conjunto global de tokens de forma que acepta cualquier token contenido en dicho conjunto.  
+En esta situacion, un atacante puede logearse en la aplicacion con su propia cuenta, obtener un token valido y luego usarlo en el ataque CSRF a la victima.
+Notar que los tokens CSRF son de uso unico, asi que cada vez es necesario incluir uno fresco. En algunos casos, el token es entregado en un input hidden en el form del html dado por el get de la pagina de cambiar el correo. Podemos copiarlo y usarlo en nuestra pagina atacante SIN HABERLO USADO. Si no esta enlazado a la session cookie id, el servidor lo reconocera como valido.
