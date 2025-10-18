@@ -1,37 +1,245 @@
-Resto.md
+# Resto.md — Herramientas de seguridad (ampliado)
+
+Este documento contiene descripciones prácticas y concisas de herramientas para **pentesting**, **bug bounty** y tareas relacionadas de seguridad. Para cada herramienta incluyo: **qué hace + uso típico** (1–2 líneas) y **Dificultad: X/10**.
+
+---
 
 ## Burp Suite
 
-(TBD - Información por agregar)
+Suite para testing de aplicaciones web: proxy interceptador, escaneo y herramientas para manipular/automatizar peticiones (repeater, intruder, extensible via BApp).  
+Dificultad: 7/10
+
+---
+
+## OWASP ZAP
+
+Proxy y escáner open source para testing web: intercepta tráfico, realiza escaneos automáticos y permite scripting/automatización con addons.  
+Dificultad: 6/10
+
+---
 
 ## John the Ripper
 
-(TBD - Información por agregar)
+Cracker de contraseñas para auditoría de hashes: ataques por diccionario, reglas y fuerza bruta en dumps de hashes.  
+Dificultad: 6/10
+
+---
 
 ## Metasploit
 
-(TBD - Información por agregar)
+Framework de explotación modular: módulos para escaneo, ejecución de exploits, payloads y post-explotación.  
+Dificultad: 7/10
+
+---
 
 ## Nmap
 
-(TBD - Información por agregar)
+Escáner de redes para descubrimiento de hosts, puertos, servicios y fingerprinting de sistemas.  
+Dificultad: 4/10
 
-## Wireshark
+---
 
-(TBD - Información por agregar)
+## Masscan
+
+Escáner de puertos ultra-rápido para descubrimiento a gran escala antes de afinar con Nmap.  
+Dificultad: 5/10
+
+---
+
+## MassDNS
+
+Resolución DNS masiva para validar subdominios y resultados DNS a gran escala.  
+Dificultad: 5/10
+
+---
+
+## Amass / Subfinder / Assetfinder
+
+Enumeración de subdominios y discovery de activos combinando DNS, scraping y APIs públicas.  
+Dificultad: 5/10
+
+---
+
+## Waybackurls / gau (getallurls)
+
+Recolectores de URLs históricas y de crawling (Wayback, CommonCrawl, certificados) para hallar endpoints antiguos u ocultos.  
+Dificultad: 3/10
+
+---
+
+## HTTPX
+
+Probe rápido de URLs para comprobar status, headers y características HTTP/TLS en listas masivas.  
+Dificultad: 3/10
+
+---
+
+## FFUF / Gobuster / Dirb
+
+Fuzzers/dir discovery para encontrar directorios, archivos y endpoints ocultos mediante wordlists.  
+Dificultad: 4/10
+
+---
+
+## Nuclei
+
+Motor de escaneo basado en plantillas para detectar vulnerabilidades y patrones conocidos a escala.  
+Dificultad: 5/10
+
+---
+
+## Burp Extensions (BApp) / ZAP Addons
+
+Extensiones para ampliar capacidades del proxy/escáner: automación de tareas, minería de parámetros y mejoras de scanner.  
+Dificultad: 6/10
+
+---
+
+## Dalfox / XSStrike / XSSer
+
+Herramientas para autom.-triage y explotación de XSS en distintos contextos y payloads.  
+Dificultad: 5/10
+
+---
 
 ## Sqlmap
 
-(TBD - Información por agregar)
+Automatiza detección y explotación de inyecciones SQL: fingerprinting de BD, extracción de datos y ejecución remota.  
+Dificultad: 5/10
+
+---
 
 ## Nikto
 
-(TBD - Información por agregar)
+Escáner de servidores web que detecta configuraciones peligrosas, archivos expuestos y versiones vulnerables.  
+Dificultad: 3/10
+
+---
+
+## Wpscan / JoomlaScan
+
+Escáneres para CMS que detectan plugins/themes vulnerables, versiones y configuraciones débiles.  
+Dificultad: 4/10
+
+---
 
 ## Hydra
 
-(TBD - Información por agregar)
+Herramienta de fuerza bruta para servicios de autenticación (ssh, ftp, http-form, smb, etc.).  
+Dificultad: 5/10
 
-## SCNR
+---
 
-## Sonarqube
+## Hashcat
+
+Cracking acelerado por GPU para ataques offline sobre hashes con masks, reglas y ataques híbridos.  
+Dificultad: 7/10
+
+---
+
+## Gitleaks / TruffleHog
+
+Buscadores de secretos en repositorios y commits históricos para encontrar credenciales y tokens expuestos.  
+Dificultad: 4/10
+
+---
+
+## Aquatone / Eyewitness
+
+Herramientas para tomar screenshots de activos web y agrupar resultados visualmente para triage.  
+Dificultad: 3/10
+
+---
+
+## Wireshark
+
+Analizador de paquetes para inspección detallada de tráfico (TCP, TLS, HTTP, DNS, etc.) y análisis forense de red.  
+Dificultad: 7/10
+
+---
+
+## Dradis / MagicTree
+
+Herramientas para centralizar hallazgos, evidencias y generar reportes estandarizados en pentests.  
+Dificultad: 4/10
+
+---
+
+## Nessus / OpenVAS
+
+Escáneres de vulnerabilidades para inventario y detección de firmas en infraestructuras a gran escala.  
+Dificultad: 5/10
+
+---
+
+## Pacu / ScoutSuite
+
+Herramientas para auditoría de seguridad en entornos cloud (IAM, configuraciones y recursos expuestos).  
+Dificultad: 7/10
+
+---
+
+## MobSF / jadx / apktool
+
+Herramientas para análisis estático/dinámico y descompilación de aplicaciones móviles (APK/IPA).  
+Dificultad: 8/10
+
+---
+
+## SCNR ecsypno: https://github.com/scnr/book/tree/master/src
+
+Término no identificado claramente; confirmar si es un typo o herramienta concreta.  
+Dificultad: N/A
+
+---
+
+## SonarQube
+
+Plataforma de análisis estático de código (SAST) para detectar bugs, vulnerabilidades y code smells en pipelines CI.  
+Dificultad: 6/10
+
+---
+
+## Recomendación práctica mínima
+
+Stack mínimo recomendado para bug bounty + pentesting web: `Nmap, masscan, Amass/Subfinder, waybackurls/gau, httpx, ffuf, nuclei, Burp Suite, sqlmap, Wireshark, John/Hashcat, gitleaks`.
+
+---
+
+Prioridad alta — imprescindibles para bug bounty
+
+Recon / Subdominios & URLs: amass, subfinder, assetfinder, sublist3r, crt.sh/certi search workflows — para descubrir activos.
+
+Recolecta de URLs/Wayback/Archivos: waybackurls, gau (getallurls), httprobe — para encontrar endpoints antiguos/ocultos.
+
+Procesamiento masivo / escaneo rápido: masscan (puertos a gran escala), massdns — para descubrimiento veloz.
+
+Fuzzing / Content discovery: ffuf, gobuster, dirb, wfuzz — para encontrar directorios/endpoints y vectores de inyección.
+
+Templates / scanning rápido de vulns: nuclei + plantillas — fundamental para automatizar la detección de miles de patrones conocidos.
+
+Prioridad media — muy útiles
+
+Captura dirigida y fuzzing XSS/JS: dalfox, xsser (varios) — para XSS autom.
+
+CMS y plataformas específicas: wpscan (WordPress), joomscan — si apuntas a CMS.
+
+HTTP tooling / scripting: httpx (probe and status), curl, mitmproxy (proxy avanzado, scripting).
+
+Recon de directorios visual/agrupamiento: aquatone, eyewitness — tomar screenshots y agrupar activos.
+
+Automatización y explotación de credenciales/API: ffuf, burp extensions (autorize, param miner), sqlmap ya lo tenés.
+
+Prioridad baja — según enfoque
+
+Escaneo de vulnerabilidades comerciales / grandes: Nessus, OpenVAS — para inventario y escaneo profundo.
+
+Frameworks para reporting / colaboración: Dradis, MagicTree — útiles para equipos y reporting.
+
+Cloud / IAM / infra infractions: Pacu (AWS), ScoutSuite — si haces pentesting cloud.
+
+Mobile / SAST spezial: MobSF (mobile), herramientas SCA/DAST adicionales.
+
+Otras herramientas útiles que no nombraste
+
+massdns, httpx, gitleaks (secrets), truffleHog, theHarvester, shodan/censys (inteligencia), Burp extensions (e.g., Autorize, Paramalyzer), PhantomJS/Playwright scripts para testing JS-heavy apps.
