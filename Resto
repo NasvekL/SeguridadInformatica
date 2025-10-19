@@ -243,3 +243,6 @@ Mobile / SAST spezial: MobSF (mobile), herramientas SCA/DAST adicionales.
 Otras herramientas útiles que no nombraste
 
 massdns, httpx, gitleaks (secrets), truffleHog, theHarvester, shodan/censys (inteligencia), Burp extensions (e.g., Autorize, Paramalyzer), PhantomJS/Playwright scripts para testing JS-heavy apps.
+
+
+otras: httpie, curl, hakrawler, gobuster, ffuf, wafw00f, nuclei
